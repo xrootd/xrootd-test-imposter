@@ -16,14 +16,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-import time
+import struct
 
-class XRootDLogInServer:
-  @classmethod
-  def getDescription( cls ):
-    return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1 }
-
-  def __call__( self, context ):
-    print "test"
-    time.sleep( 1 )
-    print "done"
+class XRootDProtocolHelper:
+    
+    @property
+    def clientHandshakeRequest(self):
+        return struct.pack('>lllll', 0, 0, 0, 4, 2012)
+    
+    def serverHandshakeResponse(self):
+        pass
+    
+    def createRequest(self, request):
+        pass
+    
+    def createResponse(self, request):
+        pass
+    
+    def unpackHandshakeResponse(self, response):
+        return struct.unpack('>BBHlll', response)

@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2011-2012 by European Organization for Nuclear Research (CERN)
-# Author: Lukasz Janyst <ljanyst@cern.ch>
+# Author: Justin Salmon <jsalmon@cern.ch>
 #-------------------------------------------------------------------------------
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,14 +16,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-import time
+from XRootDProtocolHelper import XRootDProtocolHelper
 
-class XRootDLogInServer:
-  @classmethod
-  def getDescription( cls ):
-    return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1 }
-
-  def __call__( self, context ):
-    print "test"
-    time.sleep( 1 )
-    print "done"
+class LoginHelper:
+    
+    def login(self, sock):
+        protocolHelper = XRootDProtocolHelper()
+        
+        sock.send(protocolHelper.clientHandshakeRequest)
+        responseRaw = sock.recv(16)
+        response    = protocolHelper.unpackHandshakeResponse(responseRaw)
+        
+        print response

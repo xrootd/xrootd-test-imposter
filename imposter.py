@@ -111,6 +111,7 @@ def runActive( scenario ):
   for i in range( numClients ):
     try:
       clientSocket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+      clientSocket.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
       clientSocket.connect( (hostName, hostPort) )
     except socket.error, err:
       print "[!] Socket error:", err

@@ -16,10 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
+from lib.LoginHelper import LoginHelper
+
 class XRootDLogInClient:
   @classmethod
   def getDescription( cls ):
     return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 'clients': 3 }
 
   def __call__( self, context ):
+    loginHelper = LoginHelper()
+    loginHelper.login(context['socket'])
     print "test"
