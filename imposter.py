@@ -23,7 +23,7 @@ from threading import Thread
 #-------------------------------------------------------------------------------
 def printHelp():
   print "Usage:"
-  print "  imposter.py --class=ClassName"
+  print "  imposter.py"
   print "    --scenario=ClassName name of the class defining the interaction scenario"
   print "    --libpath=path       path containing the interation definitions"
   print "    --help               print this help message"
@@ -59,10 +59,15 @@ def runPassive( scenario ):
   #-----------------------------------------------------------------------------
   # Listen to the incomming connections
   #-----------------------------------------------------------------------------
-  serverSocket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-  serverSocket.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
-  serverSocket.bind( (listenIP, listenPort) )
-  serverSocket.listen( 5 )
+  try:
+    serverSocket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+    serverSocket.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
+    serverSocket.bind( (listenIP, listenPort) )
+    serverSocket.listen( 5 )
+  except socket.error, e:
+      print "[!] Socket error:", e
+      return 11
+      
   threads = []
   for i in range( numClients ):
     (clientSocket, address) = serverSocket.accept()
