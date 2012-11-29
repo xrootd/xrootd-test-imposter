@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2011-2012 by European Organization for Nuclear Research (CERN)
-# Author: Lukasz Janyst <ljanyst@cern.ch>
+# Author: Justin Salmon <jsalmon@cern.ch>
 #-------------------------------------------------------------------------------
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,14 +16,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-from lib.LoginHelper import LoginHelper
+from xprotocol.XProtocolHelper import XProtocolHelper
 
 class XRootDLogInClient:
   @classmethod
-  def getDescription( cls ):
-    return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 'clients': 3 }
+  def getDescription(cls):
+    return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 'clients': 1 }
 
-  def __call__( self, context ):
-    loginHelper = LoginHelper()
-    loginHelper.login(context['socket'])
-    print "test"
+  def __call__(self, context):
+    prohelper = XProtocolHelper(context)
+    prohelper.login({})
+    
+    requestvars = {
+                  'type': 'ClientPingRequest',
+                  'requestid': 'kXR_ping',
+                  'params': {}
+                  }
+
+    request = prohelper.create_request(requestvars)
+    response = prohelper.send_request(request)
+    print response

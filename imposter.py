@@ -17,7 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-import getopt, sys, socket
+import getopt
+import sys
+import socket
+
 from threading import Thread
 
 #-------------------------------------------------------------------------------
@@ -57,7 +60,7 @@ def runPassive( scenario ):
     return 10
 
   #-----------------------------------------------------------------------------
-  # Listen to the incomming connections
+  # Listen to the incoming connections
   #-----------------------------------------------------------------------------
   try:
     serverSocket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
@@ -117,7 +120,7 @@ def runActive( scenario ):
       print "[!] Socket error:", err
       return 11
 
-    context = {'socket': clientSocket, 'number': i}
+    context = {'socket': clientSocket, 'streamid': i}
 
     scObj = scenario()
     if not callable( scObj ):

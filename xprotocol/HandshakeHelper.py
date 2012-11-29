@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2011-2012 by European Organization for Nuclear Research (CERN)
-# Author: Lukasz Janyst <ljanyst@cern.ch>
+# Author: Justin Salmon <jsalmon@cern.ch>
 #-------------------------------------------------------------------------------
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,21 +17,31 @@
 #-------------------------------------------------------------------------------
 
 import struct
+import XProtocol
 
-class XRootDProtocolHelper:
+class HandshakeHelper:
+  """Class to aid making initial xrootd handshakes.
+  
+  The format of the handshake is well defined and unchanging, so
+  it can be safely hard-coded here.
+  
+  """
+  
+  def __init__(self):
+    self.xprotocol = XProtocol.XProtocol()
     
-    @property
-    def clientHandshakeRequest(self):
-        return struct.pack('>lllll', 0, 0, 0, 4, 2012)
-    
-    def serverHandshakeResponse(self):
-        pass
-    
-    def createRequest(self, request):
-        pass
-    
-    def createResponse(self, request):
-        pass
-    
-    def unpackHandshakeResponse(self, response):
-        return struct.unpack('>BBHlll', response)
+  @property
+  def request(self):
+    """Return a packed representation of a client handshake request."""
+    return struct.pack('>lllll', 0, 0, 0, 4, 2012)
+  
+  @property
+  def response(self):
+    """Return a packed representation of a server handshake response."""
+    return struct.pack('>ccHlll', '\0', '\0', 0, 8, 663, 1)
+  
+  def unpack_response(self, response):
+    """Return an unpacked tuple representation of a server handshake 
+    response."""
+    return struct.unpack('>ccHlll', response)
+  

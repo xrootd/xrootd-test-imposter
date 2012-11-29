@@ -26,4 +26,8 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
+# IDE metadata
 nbproject
+.DS_Store
+.project
+.pydevproject
