@@ -17,7 +17,6 @@
 #-------------------------------------------------------------------------------
 
 import struct
-import XProtocol
 
 class HandshakeHelper:
   """Class to aid making initial xrootd handshakes.
@@ -26,9 +25,6 @@ class HandshakeHelper:
   it can be safely hard-coded here.
   
   """
-  
-  def __init__(self):
-    self.xprotocol = XProtocol.XProtocol()
     
   @property
   def request(self):

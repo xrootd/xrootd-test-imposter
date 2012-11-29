@@ -23,10 +23,12 @@ import socket
 import XProtocol
 import HandshakeHelper
 
+class XProtocolHelperError(Exception):
+  pass
+
 class XProtocolHelper:
     
   def __init__(self, context):
-    self.xprotocol = XProtocol.XProtocol()
     self.sock = context['socket']
     self.streamid = context['streamid']
     self.handshake()
@@ -66,9 +68,9 @@ class XProtocolHelper:
       sys.exit(1)
         
     # Get the correct request struct
-    request_struct = self.xprotocol.get_struct(reqtype)
+    request_struct = self.get_struct(reqtype)
     # Get integer request ID
-    requestid = self.xprotocol.get_requestid(requestid)
+    requestid = self.get_requestid(requestid)
     
     # Tuple-ify struct with real values
     for member in request_struct:
@@ -82,7 +84,7 @@ class XProtocolHelper:
         fmt += 'H'
       if member['name'] == 'reserved':
         # Fill in reserved area
-        size = int(member['array_size'])
+        size = int(member['size'])
         request += size * ('\0',)
         fmt += size * 'c'
       if member['name'] == 'dlen':
@@ -97,4 +99,30 @@ class XProtocolHelper:
   
   def create_response(self, request):
     pass
-  
+    
+  def get_struct(self, name):
+    """Return a representation of a struct as a list of dicts."""
+    if hasattr(XProtocol, name):
+        return getattr(XProtocol, name)
+    else:
+      print "[!] XProtocol struct not found:", name
+      sys.exit(1) 
+            
+    return struct['properties']['public']
+    
+  def get_requestid(self, requestid):
+    """Return the integer request ID associated with the given 
+    string request ID.
+
+    For example, passing "kXR_ping" will return 3011.
+
+    """ 
+    if hasattr(XProtocol.XRequestTypes, requestid):
+      return getattr(XProtocol.XRequestTypes, requestid)
+    else:
+      print "[!] Unknown request ID:", requestid
+      sys.exit(1)
+          
+          
+          
+          
