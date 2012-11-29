@@ -22,37 +22,75 @@ import socket
 
 import XProtocol
 import HandshakeHelper
+import LoginHelper
 
-class XProtocolHelperError(Exception):
-  pass
+
+class XProtocolHelperException(Exception):
+    """General Exception raised by XProtocolHelper."""
+    
+    def __init__(self, desc):
+        """Construct an exception.
+        
+        @param desc: description of an error
+        """
+        self.desc = desc
+
+    def __str__(self):
+        """Return textual representation of an error."""
+        return str(self.desc)
+
 
 class XProtocolHelper:
+  """Class to aid sending/receiving client and server xrootd messages."""
     
   def __init__(self, context):
+    """Constructor: Store context variables and perform initial 
+    handshake.
+    """
     self.sock = context['socket']
     self.streamid = context['streamid']
     self.handshake()
   
   def handshake(self):
+    """Perform initial handshake."""
     handshake = HandshakeHelper.HandshakeHelper()
     
     try:
-      self.sock.send(handshake.request)
-      response_raw = self.sock.recv(1024)
-    except socket.error, e:
+      response_raw = self.send_request(handshake.request)
+    except XProtocolHelperException, e:
       print "[!] Error during handshake:", e
       sys.exit(1)
       
     response = handshake.unpack_response(response_raw)
     print response
     
-  def login(self, vars):
-    pass
-  
+  def login(self, login_vars):
+    """Perform login sequence."""
+    login_vars.update({'streamid': self.streamid})
+    login = LoginHelper.LoginHelper(login_vars)
+    
+    try:
+      response_raw = self.send_request(login.request)
+    except XProtocolHelperException, e:
+      print "[!] Error during login:", e
+      sys.exit(1)
+      
+    response = login.unpack_response(response_raw)
+    print 'login response:', response
+    
   def send_request(self, request):
-    self.sock.send(request)
-    response = self.sock.recv(1024)
-    return self.unpack_response(response)
+    """Send a packed request and return a packed response."""
+    try:
+      self.sock.send(request)
+    except socket.error, e:
+      raise XProtocolHelperException('Error sending request:', e)
+    
+    try:  
+      response = self.sock.recv(4096)
+    except:
+      raise XProtocolHelperException('Error receiving response:', e)
+    
+    return response
       
   def create_request(self, requestvars):
     request = tuple()
@@ -94,7 +132,6 @@ class XProtocolHelper:
     return struct.pack(fmt, *request)
                           
   def unpack_response(self, response):
-    print len(response)
     return struct.unpack('>ccHl' + ('c' * (len(response) - 8)), response)
   
   def create_response(self, request):

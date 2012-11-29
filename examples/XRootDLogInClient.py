@@ -25,14 +25,10 @@ class XRootDLogInClient:
 
   def __call__(self, context):
     prohelper = XProtocolHelper(context)
-    prohelper.login({})
+    prohelper.login({'username': 'anybody', 'admin': False,})
     
-    requestvars = {
-                  'type': 'ClientPingRequest',
-                  'requestid': 'kXR_ping',
-                  'params': {}
-                  }
+    requestvars = {'type': 'ClientPingRequest', 'requestid': 'kXR_ping', 'params': {}}
 
     request = prohelper.create_request(requestvars)
     response = prohelper.send_request(request)
-    print response
+    print 'ping response:', prohelper.unpack_response(response)
