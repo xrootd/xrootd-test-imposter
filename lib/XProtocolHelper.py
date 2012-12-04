@@ -23,6 +23,7 @@ import socket
 import XProtocol
 import HandshakeHelper
 import LoginHelper
+import AuthHelper
 
 
 class XProtocolHelperException(Exception):
@@ -62,12 +63,21 @@ class XProtocolHelper:
       sys.exit(1)
       
     response = handshake.unpack_response(response_raw)
-    print response
+    print 'handshake response:\t', response
     
   def login(self, login_vars):
-    """Perform login sequence."""
+    """Perform login sequence, including protocol request."""
     login_vars.update({'streamid': self.streamid})
     login = LoginHelper.LoginHelper(login_vars)
+    
+    try:
+      response_raw = self.send_request(self.protocol_request)
+    except XProtocolHelperException, e:
+      print "[!] Error during protocol request:", e
+      sys.exit(1)
+      
+    response = self.unpack_protocol_response(response_raw)
+    print 'protocol response:\t', response
     
     try:
       response_raw = self.send_request(login.request)
@@ -76,19 +86,34 @@ class XProtocolHelper:
       sys.exit(1)
       
     response = login.unpack_response(response_raw)
-    print 'login response:', response
+    print 'login response:\t\t', response
+    
+    if response['auth']:
+      self.authenticate(response['response'])
+      
+  def authenticate(self, response):
+    auth = AuthHelper.AuthHelper(response, self.streamid, self.sock)
+    
+    try:
+      response_raw = self.send_request(auth.request)
+    except XProtocolHelperException, e:
+      print "[!] Error during authentication:", e
+      sys.exit(1)
+      
+    response = auth.unpack_response(response_raw)
+    print 'auth response:\t\t', response
     
   def send_request(self, request):
     """Send a packed request and return a packed response."""
     try:
       self.sock.send(request)
     except socket.error, e:
-      raise XProtocolHelperException('Error sending request:', e)
+      raise XProtocolHelperException('Error sending request: %s' % e)
     
     try:  
       response = self.sock.recv(4096)
-    except:
-      raise XProtocolHelperException('Error receiving response:', e)
+    except socket.error, e:
+      raise XProtocolHelperException('Error receiving response: %s' % e)
     
     return response
       
@@ -131,6 +156,15 @@ class XProtocolHelper:
 
     return struct.pack(fmt, *request)
                           
+  @property
+  def protocol_request(self):
+    request = (self.streamid, XProtocol.XRequestTypes.kXR_protocol,
+               XProtocol.XLoginVersion.kXR_ver003, (12 * "\0"), 0)
+    return struct.pack('>HHl12sl', *request)
+  
+  def unpack_protocol_response(self, response):
+    return struct.unpack('>ccHlll', response)
+  
   def unpack_response(self, response):
     return struct.unpack('>ccHl' + ('c' * (len(response) - 8)), response)
   
@@ -160,6 +194,13 @@ class XProtocolHelper:
       print "[!] Unknown request ID:", requestid
       sys.exit(1)
           
+def flatten(*args):
+  for x in args:
+    if hasattr(x, '__iter__'):
+      for y in flatten(*x):
+        yield y
+    else:
+      yield x
           
           
           

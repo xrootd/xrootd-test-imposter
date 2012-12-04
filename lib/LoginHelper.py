@@ -20,6 +20,7 @@ import os
 import struct
 
 import XProtocol
+from Utils import flatten
 
 class LoginHelper:
     """Class to aid in performing an xrootd login sequence."""
@@ -31,25 +32,10 @@ class LoginHelper:
       
     @property
     def request(self):
-      
-      request = tuple(
-                      flatten(
-                              self.streamid,
-                              self.requestid,
-                              self.pid,
-                              self.username,
-                              '\0',
-                              '\0',
-                              self.capver,
-                              self.role,
-                              self.tlen
-                              )
-                      )
-      
-      print 'login request:', tuple(request)
-      fmt = '>HHl10cBcl'
-      
-      return struct.pack(fmt, *request)
+      request = tuple(flatten(self.streamid, self.requestid, self.pid,
+                              self.username, '\0', '\0', self.capver,
+                              self.role, self.tlen))
+      return struct.pack('>HHl10cBcl', *request)
     
     @property
     def response(self):
@@ -82,15 +68,12 @@ class LoginHelper:
       
     def unpack_response(self, response):
       if not len(response) > 24:
-        return struct.unpack('>ccHl16s', response)
+        # Authorization not needed
+        return {'response': struct.unpack('>ccHl16s', response),
+                'auth': False}
       else:
-        return struct.unpack('>ccHl16s' + ('c' * (len(response)) - 24), response)
+        # Authorization needed
+        return {'response': struct.unpack('>ccHl16s' + ('c' * (len(response) - 24)), response),
+                'auth': True}
       
-def flatten(*args):
-  for x in args:
-    if hasattr(x, '__iter__'):
-      for y in flatten(*x):
-        yield y
-    else:
-      yield x
         
