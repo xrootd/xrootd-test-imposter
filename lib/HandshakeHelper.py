@@ -34,10 +34,10 @@ class HandshakeHelper:
   @property
   def response(self):
     """Return a packed representation of a server handshake response."""
-    return struct.pack('>ccHlll', '\0', '\0', 0, 8, 663, 1)
+    return struct.pack('>HHlll', '\0', '\0', 0, 8, 663, 1)
   
   def unpack_response(self, response):
     """Return an unpacked tuple representation of a server handshake 
     response."""
-    return struct.unpack('>ccHlll', response)
+    return struct.unpack('>HHlll', response)
   

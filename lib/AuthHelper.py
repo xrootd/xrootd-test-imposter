@@ -27,7 +27,7 @@ from Utils import flatten
 class AuthHelper:
   
   def __init__(self, response, streamid, sock):
-    self.authparams = ''.join(response[5:])
+    self.authparams = ''.join(response[4:])
     self.streamid = streamid
     self.sock = sock
     self.getcredentials()
@@ -57,7 +57,8 @@ class AuthHelper:
       self.credentials = list(self.credentials.ljust(self.credlen, '\0'))
     except IOError, e:
       print "[!] Error authenticating:", e
+      sys.exit(1)
       
   def unpack_response(self, response):
-    return struct.unpack('>ccHl' + ('c' * (len(response) - 8)), response)
+    return struct.unpack('>HHl' + ('c' * (len(response) - 8)), response)
 
