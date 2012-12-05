@@ -36,7 +36,6 @@ class AuthHelper:
   def request(self):
     request = tuple(flatten(self.streamid, self.requestid, self.reserved,
                             self.credtype, self.credlen, self.credentials))
-    print request
     return struct.pack('>HH12c4cl' + ('c' * self.credlen), *request)
 
   @property

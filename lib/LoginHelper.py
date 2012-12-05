@@ -25,10 +25,10 @@ from Utils import flatten
 class LoginHelper:
     """Class to aid in performing an xrootd login sequence."""
 
-    def __init__(self, login_vars):
-      self.streamid = login_vars['streamid']
-      self.user = login_vars['username']
-      self.admin = login_vars['admin']
+    def __init__(self, streamid, username, admin):
+      self.streamid = streamid
+      self.user = username
+      self.admin = admin
       
     @property
     def request(self):

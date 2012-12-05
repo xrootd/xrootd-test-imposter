@@ -262,158 +262,158 @@ XErrorCode = enum(
 # byte order when sent
 
 ClientAdminRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 16},
+  {'name': 'reserved', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientAuthRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 12},
+  {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'credtype', 'type': 'c', 'size': 14},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientBindRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'sessid', 'type': 'c', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientChmodRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 14},
+  {'name': 'reserved', 'type': 's', 'size': 14},
   {'name': 'mode', 'type': 'H'},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientCloseRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
   {'name': 'fsize', 'type': 'q'},
-  {'name': 'reserved', 'type': 'c', 'size': 4},
+  {'name': 'reserved', 'type': 's', 'size': 4},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientDirlistRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 15},
+  {'name': 'reserved', 'type': 's', 'size': 15},
   {'name': 'options', 'type': 'c', 'size': 1},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientEndsessRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'sessid', 'type': 'c', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientGetfileRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'l'},
-  {'name': 'reserved', 'type': 'c', 'size': 8},
+  {'name': 'reserved', 'type': 's', 'size': 8},
   {'name': 'buffsz', 'type': 'l'},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientLocateRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 14},
+  {'name': 'reserved', 'type': 's', 'size': 14},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientLoginRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'pid', 'type': 'l'},
   {'name': 'username', 'type': 'c', 'size': 8},
-  {'name': 'reserved', 'type': 'c', 'size': 2},
+  {'name': 'reserved', 'type': 's', 'size': 2},
   {'name': 'capver', 'type': 'c', 'size': 1},
   {'name': 'role', 'type': 'c', 'size': 1},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientMkdirRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'c', 'size': 1},
-  {'name': 'reserved', 'type': 'c', 'size': 13},
+  {'name': 'reserved', 'type': 's', 'size': 13},
   {'name': 'mode', 'type': 'H'},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientMvRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 16},
+  {'name': 'reserved', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientOpenRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'mode', 'type': 'H'},
   {'name': 'options', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 12},
+  {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientPingRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 16},
+  {'name': 'reserved', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientProtocolRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'clientpv', 'type': 'l'}, # 2.9.7 or higher
-  {'name': 'reserved', 'type': 'c', 'size': 12},
+  {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientPrepareRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'c'},
   {'name': 'prty', 'type': 'c'},
   {'name': 'port', 'type': 'H'}, # 2.9.9 or higher
-  {'name': 'reserved', 'type': 'c', 'size': 12},
+  {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientPutfileRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'l'},
-  {'name': 'reserved', 'type': 'c', 'size': 8},
+  {'name': 'reserved', 'type': 's', 'size': 8},
   {'name': 'buffsz', 'type': 'l'},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientQueryRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'infotype', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 2},
+  {'name': 'reserved', 'type': 's', 'size': 2},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
-  {'name': 'reserved', 'type': 'c', 'size': 8},
+  {'name': 'reserved', 'type': 's', 'size': 8},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientReadRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
   {'name': 'offset', 'type': 'q'},
@@ -422,86 +422,86 @@ ClientReadRequest = [
 ]
 
 ClientReadVRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 15},
+  {'name': 'reserved', 'type': 's', 'size': 15},
   {'name': 'pathid', 'type': 'c'},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientRmRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 16},
+  {'name': 'reserved', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientRmdirRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 16},
+  {'name': 'reserved', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientSetRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 'c', 'size': 16},
+  {'name': 'reserved', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientStatRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'c'},
-  {'name': 'reserved', 'type': 'c', 'size': 11},
+  {'name': 'reserved', 'type': 's', 'size': 11},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientSyncRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
-  {'name': 'reserved', 'type': 'c', 'size': 12},
+  {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientTruncateRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
   {'name': 'offset', 'type': 'q'},
-  {'name': 'reserved', 'type': 'c', 'size': 4},
+  {'name': 'reserved', 'type': 's', 'size': 4},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientWriteRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
   {'name': 'offset', 'type': 'q'},
   {'name': 'pathid', 'type': 'c'},
-  {'name': 'reserved', 'type': 'c', 'size': 3},
+  {'name': 'reserved', 'type': 's', 'size': 3},
   {'name': 'dlen', 'type': 'l'}
 ]
 
 ClientVerifywRequest = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'fhandle', 'type': 'c', 'size': 4},
   {'name': 'offset', 'type': 'q'},
   {'name': 'pathid', 'type': 'c'},
   {'name': 'vertype', 'type': 'c'}, # One of XVerifyType
-  {'name': 'reserved', 'type': 'c', 'size': 2},
+  {'name': 'reserved', 'type': 's', 'size': 2},
   {'name': 'dlen', 'type': 'l'} # Includes crc length
 ]
 
 ClientRequestHdr = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'body', 'type': 'c', 'size': 16},
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
 ]
 
 
@@ -513,7 +513,7 @@ readahead_list = [
 
 read_args = [
   {'name': 'pathid', 'type': 'c'},
-  {'name': 'reserved', 'type': 'c', 'size': 7}
+  {'name': 'reserved', 'type': 's', 'size': 7}
 ]
 
 #-------------------------------------------------------------------------------
@@ -527,9 +527,9 @@ read_args = [
 #          no need of packing options
 
 ServerResponseHeader = [
-  {'name': 'streamid', 'type': 'c', 'size': 2},
+  {'name': 'streamid', 'type': 'H'},
   {'name': 'status', 'type': 'H'},
-  {'name': 'streamid', 'type': 'c', 'size': 2}
+  {'name': 'dlen', 'type': 'l'}
 ]
 
 ServerResponseBody_Bind = [
@@ -624,3 +624,14 @@ ServerInitHandShake = [
   {'name': 'msgval', 'type': 'l'},
 ]
           
+XActionCode = enum(
+   kXR_asyncab  = 5000,
+   kXR_asyncdi  = 5001,
+   kXR_asyncms  = 5002,
+   kXR_asyncrd  = 5003,
+   kXR_asyncwt  = 5004,
+   kXR_asyncav  = 5005,
+   kXR_asynunav = 5006,
+   kXR_asyncgo  = 5007,
+   kXR_asynresp = 5008
+)

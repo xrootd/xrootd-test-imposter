@@ -31,9 +31,9 @@
 
 using namespace std;
 
-//------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Get the authentication function handle
-//------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 typedef XrdSecProtocol *(*XrdSecGetProt_t)(const char *, const sockaddr &,
 		const XrdSecParameters &, XrdOucErrInfo *);
 
@@ -98,9 +98,9 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 	// credentials
 	//--------------------------------------------------------------------------
 	while (1) {
-		//------------------------------------------------------------------------
+		//----------------------------------------------------------------------
 		// Get the protocol
-		//------------------------------------------------------------------------
+		//----------------------------------------------------------------------
 		authProtocol = (*authHandler)("localhost", *((sockaddr*) sockadd),
 				*authParams, 0);
 		if (!authProtocol) {
@@ -112,9 +112,9 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 		protocolName = authProtocol->Entity.prot;
 		cout << "Trying to authenticate using " << protocolName.c_str() << endl;
 
-		//------------------------------------------------------------------------
+		//----------------------------------------------------------------------
 		// Get the credentials from the current protocol
-		//------------------------------------------------------------------------
+		//----------------------------------------------------------------------
 		credentials = authProtocol->getCredentials(0, &ei);
 		if (!credentials) {
 			cout << "Cannot get credentials for protocol "
@@ -131,12 +131,12 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 }
 }
 
-static PyMethodDef SpamMethods[] = {
+static PyMethodDef AuthBindMethods[] = {
 	{ "get_credentials", get_credentials, METH_VARARGS,
 			"Get opaque credentials object." },
 	{ NULL, NULL, 0, NULL } /* Sentinel */
 };
 
 PyMODINIT_FUNC initauthbind(void) {
-	(void) Py_InitModule("authbind", SpamMethods);
+	(void) Py_InitModule("authbind", AuthBindMethods);
 }
