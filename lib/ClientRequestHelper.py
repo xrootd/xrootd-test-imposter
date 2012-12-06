@@ -24,6 +24,7 @@ import XProtocol
 import HandshakeHelper
 import LoginHelper
 import AuthHelper
+from Utils import flatten
 
 
 class ClientRequestHelperException(Exception):
@@ -48,6 +49,7 @@ class ClientRequestHelper:
     """Constructor: Store context variables."""
     self.sock = context['socket']
     self.streamid = context['streamid']
+    self.seclib = context['seclib']
   
   def handshake(self):
     """Perform initial handshake."""
@@ -66,10 +68,11 @@ class ClientRequestHelper:
     print 'login response:\t\t', response
     
     if response['auth']:
-      self.kXR_auth(response['response'])
+      self.kXR_auth(response['message'])
       
   def kXR_auth(self, response):
-    auth = AuthHelper.AuthHelper(response, self.streamid, self.sock)
+    auth = AuthHelper.AuthHelper(response, self.seclib, 
+                                 self.streamid, self.sock)
     
     response_raw  = self._send_request(auth.requestid, auth.request)
     response      = auth.unpack_response(response_raw)
@@ -137,8 +140,19 @@ class ClientRequestHelper:
   def kXR_sync(self):
     pass
   
-  def kXR_stat(self):
-    pass
+  def kXR_stat(self, path):
+    request_struct = self._get_struct('ClientStatRequest')
+    requestid = 'kXR_stat'
+    
+    params = {'requestid' : self._get_requestid(requestid),
+              'options'   : '0',
+              'reserved'  : (11 * "\0"),
+              'fhandle'   : (4  * "\0"),
+              'dlen'      : len(path),
+              'path'      : list(path)}
+    
+    response = self._do_request(requestid, request_struct, params)
+    print 'stat response:\t\t', response
   
   def kXR_set(self):
     pass
@@ -199,11 +213,14 @@ class ClientRequestHelper:
     for member in request_struct:
       request += (params[member['name']],)
       if member.has_key('size'):
-        format += str(member['size']) + member['type']
+        if member['size'] == 'dlen':
+          format += str(params[member['size']]) + member['type']
+        else:
+          format += str(member['size']) + member['type']
       else: 
         format += member['type']
-      
-    return struct.pack(format, *request)
+
+    return struct.pack(format, *tuple(flatten(request)))
     
   def _send_request(self, requestid, request):
     """Send a packed request and return a packed response."""
@@ -223,19 +240,26 @@ class ClientRequestHelper:
   def _unpack_response(self, response, requestid):
     """Return an unpacked tuple representation of a server response."""
     header_struct = self._get_struct('ServerResponseHeader')
-    if len(response) > 8:
-      body_struct = self._get_struct('ServerResponseBody_' 
-                                      + requestid[4:].title())
-    else: body_struct = list()
-    
-    response_struct = header_struct + body_struct
     format = '>'
     
-    for member in response_struct:
+    for member in header_struct:
+      format += member['type']
+    
+    dlen = struct.unpack(format + ('s' * (len(response) - 8)), response)[2]
+    
+    try:
+      body_struct = self._get_struct('ServerResponseBody_' 
+                                      + requestid[4:].title())
+    except: body_struct = list()
+    
+    for member in body_struct:
       if member.has_key('size'):
         format += str(member['size']) + member['type']
       else: 
         format += member['type']
+        
+    if not body_struct:
+      format += (str(dlen) + 's')
     
     response = struct.unpack(format, response)
     return self._get_responseid(response[1]), response
@@ -245,8 +269,8 @@ class ClientRequestHelper:
     if hasattr(XProtocol, name):
         return getattr(XProtocol, name)
     else:
-      print "[!] XProtocol struct not found:", name
-      sys.exit(1) 
+      raise ClientRequestHelperException("[!] XProtocol struct not found:", 
+                                         name)
     
   def _get_requestid(self, requestid):
     """Return the integer request ID associated with the given string 

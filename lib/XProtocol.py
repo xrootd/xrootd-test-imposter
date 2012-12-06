@@ -457,8 +457,9 @@ ClientStatRequest = [
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'c'},
   {'name': 'reserved', 'type': 's', 'size': 11},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'fhandle', 'type': 's', 'size': 4},
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 'c', 'size': 'dlen'}
 ]
 
 ClientSyncRequest = [

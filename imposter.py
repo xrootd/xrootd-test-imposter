@@ -28,7 +28,7 @@ def printHelp():
   print "Usage:"
   print "  imposter.py"
   print "    --scenario=ClassName name of the class defining the interaction scenario"
-  print "    --libpath=path       path containing the interation definitions"
+  print "    --libpath=path       path containing the interaction definitions"
   print "    --help               print this help message"
 
 #-------------------------------------------------------------------------------
@@ -75,6 +75,9 @@ def runPassive( scenario ):
   for i in range( numClients ):
     (clientSocket, address) = serverSocket.accept()
     context = {'socket': clientSocket, 'address': address, 'number': i}
+    
+    if desc.has_key('seclib'):
+      context.update({'seclib': desc['seclib']})
 
     scObj = scenario()
     if not callable( scObj ):
@@ -121,6 +124,9 @@ def runActive( scenario ):
       return 11
 
     context = {'socket': clientSocket, 'streamid': i}
+    
+    if desc.has_key('seclib'):
+      context.update({'seclib': desc['seclib']})
 
     scObj = scenario()
     if not callable( scObj ):

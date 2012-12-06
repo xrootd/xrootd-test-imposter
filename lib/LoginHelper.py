@@ -69,11 +69,12 @@ class LoginHelper:
     def unpack_response(self, response):
       if not len(response) > 24:
         # Authorization not needed
-        return {'response': struct.unpack('>HHl16s', response),
+        return {'message': struct.unpack('>HHl16s', response),
                 'auth': False}
       else:
         # Authorization needed
-        return {'response': struct.unpack('>HHl16s' + ('c' * (len(response) - 24)), response),
+        return {'message': struct.unpack('>HHl16s' + (str((len(response) - 24)) 
+                                                      + 's'), response),
                 'auth': True}
       
         

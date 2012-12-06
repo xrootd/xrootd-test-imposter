@@ -21,7 +21,8 @@ from lib.ClientRequestHelper import ClientRequestHelper
 class XRootDLogInClient:
   @classmethod
   def getDescription(cls):
-    return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 'clients': 1 }
+    return { 'type': 'Active', 'hostname': '192.168.56.101', 'port': 1094, 
+             'clients': 1, 'seclib': 'libXrdSec.dylib' }
 
   def __call__(self, context):
     
@@ -31,4 +32,5 @@ class XRootDLogInClient:
     client.kXR_protocol()
     client.kXR_login(username='default', admin=False)
     client.kXR_ping()
+    client.kXR_stat("/tmp")
     

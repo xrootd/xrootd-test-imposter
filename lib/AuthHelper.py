@@ -26,8 +26,9 @@ from Utils import flatten
 
 class AuthHelper:
   
-  def __init__(self, response, streamid, sock):
+  def __init__(self, response, seclib, streamid, sock):
     self.authparams = ''.join(response[4:])
+    self.seclib = seclib
     self.streamid = streamid
     self.sock = sock
     self.getcredentials()
@@ -36,7 +37,7 @@ class AuthHelper:
   def request(self):
     request = tuple(flatten(self.streamid, self.requestid, self.reserved,
                             self.credtype, self.credlen, self.credentials))
-    return struct.pack('>HH12c4cl' + ('c' * self.credlen), *request)
+    return struct.pack('>HH12c4cl' + (str(self.credlen) + 'c'), *request)
 
   @property
   def requestid(self):
@@ -53,7 +54,7 @@ class AuthHelper:
   def getcredentials(self):
     try:
       self.credname, self.credentials, self.credlen \
-      = get_credentials(self.authparams, 'libXrdSec.so', self.sock.fileno())
+      = get_credentials(self.authparams, self.seclib, self.sock.fileno())
       self.credentials = list(self.credentials.ljust(self.credlen, '\0'))
     except IOError, e:
       print "[!] Error authenticating:", e
