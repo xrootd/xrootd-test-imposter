@@ -16,33 +16,49 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
+import sys
 import struct
 
-class HandshakeHelper:
-  """Class to aid making initial xrootd handshakes.
-  
-  The format of the handshake is well defined and unchanging, so
-  it can be safely hard-coded here.
-  
-  """
+import XProtocol
+import HandshakeHelper
+
+from Utils import format_length
+
+class ServerResponseHelperException(Exception):
+  """General Exception raised by ServerResponseHelper."""
     
-  @property
-  def request(self):
-    """Return a packed representation of a client handshake request."""
-    return struct.pack('>lllll', 0, 0, 0, 4, 2012)
+  def __init__(self, desc):
+    """Construct an exception.
+        
+    @param desc: description of an error
+    """
+    self.desc = desc
+
+  def __str__(self):
+    """Return textual representation of an error."""
+    return str(self.desc)
+      
+class ServerResponseHelper:
   
-  @property
-  def response(self):
-    """Return a packed representation of a server handshake response."""
-    return struct.pack('>ccHlll', '\0', '\0', 0, 8, 663, 1)
+  def __init__(self, context):
+    self.sock = context['socket']
+    self.clientadd = context['address']
+    self.clientnum = context['number']
   
-  def unpack_request(self, request):
-    """Return an unpacked tuple representation of a client handshake
-    request."""
-    return struct.unpack('>lllll', request)
+  def handshake(self):
+    handshake = HandshakeHelper.HandshakeHelper()
+    
+    request = handshake.unpack_request(self.sock.recv(20))
+    self.sock.send(handshake.response)
+    
+    format = '>HHl10cBcl'
+    print struct.unpack(format, self.sock.recv(format_length(format)))
   
-  def unpack_response(self, response):
-    """Return an unpacked tuple representation of a server handshake 
-    response."""
-    return struct.unpack('>HHlll', response)
+  
+  
+  
+  
+  
+  
+  
   

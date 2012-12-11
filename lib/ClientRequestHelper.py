@@ -28,18 +28,18 @@ from Utils import flatten
 
 
 class ClientRequestHelperException(Exception):
-    """General Exception raised by ClientRequestHelper."""
+  """General Exception raised by ClientRequestHelper."""
     
-    def __init__(self, desc):
-        """Construct an exception.
+  def __init__(self, desc):
+    """Construct an exception.
         
-        @param desc: description of an error
-        """
-        self.desc = desc
+    @param desc: description of an error
+    """
+    self.desc = desc
 
-    def __str__(self):
-        """Return textual representation of an error."""
-        return str(self.desc)
+  def __str__(self):
+    """Return textual representation of an error."""
+    return str(self.desc)
 
 
 class ClientRequestHelper:

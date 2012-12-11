@@ -17,6 +17,10 @@
 #-------------------------------------------------------------------------------
 
 import time
+import struct
+
+from lib.ServerResponseHelper import ServerResponseHelper
+from lib.Utils import format_length
 
 class XRootDLogInServer:
   @classmethod
@@ -24,6 +28,7 @@ class XRootDLogInServer:
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1 }
 
   def __call__( self, context ):
-    print "test"
-    time.sleep( 1 )
-    print "done"
+    server = ServerResponseHelper(context)
+    
+    server.handshake()
+    
