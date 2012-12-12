@@ -21,23 +21,33 @@ import socket
 import struct
 
 import XProtocol
+import MessageHelper
+
 from authbind import get_credentials
-from Utils import flatten
+from Utils import format_length
 
 class AuthHelper:
   
-  def __init__(self, response, seclib, streamid, sock):
+  def __init__(self, context, response):
     self.authparams = ''.join(response[4:])
-    self.seclib = seclib
-    self.streamid = streamid
-    self.sock = sock
+    self.seclib = context['seclib']
+    self.streamid = context['streamid']
+    self.sock = context['socket']
+    
+    self.mh = MessageHelper.MessageHelper(context)
     self.getcredentials()
     
   @property
   def request(self):
-    request = tuple(flatten(self.streamid, self.requestid, self.reserved,
-                            self.credtype, self.credlen, self.credentials))
-    return struct.pack('>HH12c4cl' + (str(self.credlen) + 'c'), *request)
+    request_struct = self.mh.get_struct('ClientAuthRequest')
+    params = {'streamid'  : self.streamid,
+              'requestid' : self.requestid,
+              'reserved'  : self.reserved,
+              'credtype'  : self.credtype,
+              'dlen'      : self.credlen,
+              'cred'      : self.credentials}
+    
+    return self.mh.build_request(request_struct, params)
 
   @property
   def requestid(self):
@@ -45,7 +55,7 @@ class AuthHelper:
   
   @property
   def reserved(self):
-    return list(12 * '\0')
+    return 12 * '\0'
   
   @property
   def credtype(self):
@@ -61,5 +71,15 @@ class AuthHelper:
       sys.exit(1)
       
   def unpack_response(self, response):
-    return struct.unpack('>HHl' + ('c' * (len(response) - 8)), response)
+    response_struct = self.mh.get_struct('ServerResponseHeader')
+    format = '>'
+    
+    for member in response_struct:
+      format += member['type']
+    
+    if len(response) > format_length(format):
+      format += (str(len(response) - format_length(format)) + 'c')
+      
+    response = struct.unpack(format, response)
+    return self.mh.get_responseid(response[1]), response
 

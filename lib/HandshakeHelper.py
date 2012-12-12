@@ -17,32 +17,61 @@
 #-------------------------------------------------------------------------------
 
 import struct
+import MessageHelper
+
 
 class HandshakeHelper:
-  """Class to aid making initial xrootd handshakes.
+  """Class to aid making initial xrootd handshakes."""
   
-  The format of the handshake is well defined and unchanging, so
-  it can be safely hard-coded here.
-  
-  """
+  def __init__(self, context):
+    self.mh = MessageHelper.MessageHelper(context)
     
   @property
   def request(self):
     """Return a packed representation of a client handshake request."""
-    return struct.pack('>lllll', 0, 0, 0, 4, 2012)
+    request_struct = self.mh.get_struct('ClientInitHandShake')    
+    params = {'first'   : 0,
+              'second'  : 0, 
+              'third'   : 0,
+              'fourth'  : 4,
+              'fifth'   : 2012}
+    
+    return self.mh.build_request(request_struct, params)
   
   @property
   def response(self):
     """Return a packed representation of a server handshake response."""
-    return struct.pack('>ccHlll', '\0', '\0', 0, 8, 663, 1)
+    response_struct = self.mh.get_struct('ServerResponseHeader') \
+                    + self.mh.get_struct('ServerInitHandShake')
+    params = {'streamid'  : '\0\0',
+              'status'    : 0,
+              'dlen'      : 8,
+              'protover'  : 663,
+              'msgvar'    : 1}
+    
+    return self.mh.build_request(response_struct, params)
   
   def unpack_request(self, request):
     """Return an unpacked tuple representation of a client handshake
     request."""
-    return struct.unpack('>lllll', request)
+    request_struct = self.mh.get_struct('ClientInitHandShake')
+    format = '>'
+    
+    for member in request_struct:
+      format += member['type']
+      
+    return struct.unpack(format, request)
   
   def unpack_response(self, response):
     """Return an unpacked tuple representation of a server handshake 
     response."""
-    return struct.unpack('>HHlll', response)
+    response_struct = self.mh.get_struct('ServerResponseHeader') \
+                    + self.mh.get_struct('ServerInitHandShake')
+    format = '>'
+    
+    for member in response_struct:
+      format += member['type']
+      
+    response = struct.unpack(format, response)
+    return self.mh.get_responseid(response[1]), response
   

@@ -274,8 +274,9 @@ ClientAuthRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'credtype', 'type': 'c', 'size': 14},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'credtype', 'type': 'c', 'size': 4},
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'cred', 'type': 'c', 'size': 'dlen'}
 ]
 
 ClientBindRequest = [
@@ -339,7 +340,8 @@ ClientLoginRequest = [
   {'name': 'requestid', 'type': 'H'},
   {'name': 'pid', 'type': 'l'},
   {'name': 'username', 'type': 'c', 'size': 8},
-  {'name': 'reserved', 'type': 's', 'size': 2},
+  {'name': 'reserved', 'type': 's', 'size': 1},
+  {'name': 'zone', 'type': 's', 'size': 1},
   {'name': 'capver', 'type': 'c', 'size': 1},
   {'name': 'role', 'type': 'c', 'size': 1},
   {'name': 'dlen', 'type': 'l'}
@@ -551,7 +553,7 @@ ServerResponseBody_Protocol = [
 ]
 
 ServerResponseBody_Login = [
-  {'name': 'sessid', 'type': 'c', 'size': 16},
+  {'name': 'sessid', 'type': 's', 'size': 16},
   {'name': 'sec', 'type': 'c', 'size': 4096}
 ]
 
@@ -613,16 +615,15 @@ ServerResponseBody_Buffer = [
 
 # The fields to be sent as initial handshake
 ClientInitHandShake = [
-  {'name': 'first', 'type': 'l', 'value': 0},
-  {'name': 'second', 'type': 'l', 'value': 0},
-  {'name': 'third', 'type': 'l', 'value': 0},
-  {'name': 'fourth', 'type': 'l', 'value': 4},
-  {'name': 'fifth', 'type': 'l', 'value': 2012},
+  {'name': 'first', 'type': 'l'},
+  {'name': 'second', 'type': 'l'},
+  {'name': 'third', 'type': 'l'},
+  {'name': 'fourth', 'type': 'l'},
+  {'name': 'fifth', 'type': 'l'},
 ]
 
 # The body received after the first handshake's header
 ServerInitHandShake = [
-  {'name': 'msglen', 'type': 'l'},
   {'name': 'protover', 'type': 'l'},
   {'name': 'msgval', 'type': 'l'},
 ]

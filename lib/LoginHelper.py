@@ -20,61 +20,88 @@ import os
 import struct
 
 import XProtocol
-from Utils import flatten
+import MessageHelper
+from Utils import flatten, format_length
 
 class LoginHelper:
-    """Class to aid in performing an xrootd login sequence."""
+  """Class to aid in performing an xrootd login sequence."""
 
-    def __init__(self, streamid, username, admin):
-      self.streamid = streamid
-      self.user = username
-      self.admin = admin
-      
-    @property
-    def request(self):
-      request = tuple(flatten(self.streamid, self.requestid, self.pid,
-                              self.username, '\0', '\0', self.capver,
-                              self.role, self.tlen))
-      return struct.pack('>HHl10cBcl', *request)
+  def __init__(self, context, username, admin):
+    self.streamid = context['streamid']
+    self.user = username
+    self.admin = admin
+    self.mh = MessageHelper.MessageHelper(context)
     
-    @property
-    def response(self):
-      pass
+  @property
+  def request(self):
+    request_struct = self.mh.get_struct('ClientLoginRequest')
+    params = {'streamid'  : self.streamid,
+              'requestid' : self.requestid,
+              'pid'       : self.pid,
+              'username'  : self.username,
+              'reserved'  : '\0',
+              'zone'      : '\0',
+              'capver'    : self.capver,
+              'role'      : self.role,
+              'dlen'      : self.dlen}     
     
-    @property
-    def requestid(self):
-      return XProtocol.XRequestTypes.kXR_login
-    
-    @property
-    def pid(self):
-      return os.getpid()
-    
-    @property
-    def username(self):
-      return list(self.user[:8].ljust(8, "\0"))
-    
-    @property
-    def capver(self):
-      return XProtocol.XLoginCapVer.kXR_asyncap \
-             | XProtocol.XLoginVersion.kXR_ver003
+    return self.mh.build_request(request_struct, params)
+  
+  @property
+  def response(self):
+    pass
+  
+  @property
+  def requestid(self):
+    return XProtocol.XRequestTypes.kXR_login
+  
+  @property
+  def pid(self):
+    return os.getpid()
+  
+  @property
+  def username(self):
+    return list(self.user[:8].ljust(8, "\0"))
+  
+  @property
+  def capver(self):
+    return chr(XProtocol.XLoginCapVer.kXR_asyncap \
+           | XProtocol.XLoginVersion.kXR_ver003)
 
-    @property
-    def role(self):
-      return '1' if self.admin else '0'
+  @property
+  def role(self):
+    return '1' if self.admin else '0'
+    
+  @property
+  def dlen(self):
+    return 0
+    
+  def unpack_request(self):
+    pass
+    
+  def unpack_response(self, response):
+    response_struct = self.mh.get_struct('ServerResponseHeader') \
+                    + self.mh.get_struct('ServerResponseBody_Login')
+    format = '>'
+    
+    for member in response_struct:
+      if member['name'] == 'sec': continue
       
-    @property
-    def tlen(self):
-      return 0
-      
-    def unpack_response(self, response):
-      if not len(response) > 24:
-        # Authorization not needed
-        return {'message': struct.unpack('>HHl16s', response),
-                'auth': False}
-      else:
-        # Authorization needed
-        return {'message': struct.unpack('>HHl16s' + (str((len(response) - 24)) 
-                                                      + 's'), response),
-                'auth': True}
-      
-        
+      if member.has_key('size'):
+        format += str(member['size']) + member['type']
+      else: 
+        format += member['type']
+    
+    if len(response) > 24:
+      # Authentication needed
+      auth = True
+      response = struct.unpack(format + (str(len(response) 
+                                             - format_length(format)) + 's'), 
+                               response)
+    else:
+      # Authentication not needed
+      auth = False
+      response = struct.unpack(format, response)
+
+    return self.mh.get_responseid(response[1]), \
+           {'message': response, 'auth': auth}
