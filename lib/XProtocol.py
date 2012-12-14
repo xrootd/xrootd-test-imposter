@@ -554,7 +554,7 @@ ServerResponseBody_Protocol = [
 
 ServerResponseBody_Login = [
   {'name': 'sessid', 'type': 's', 'size': 16},
-  {'name': 'sec', 'type': 'c', 'size': 4096}
+  {'name': 'sec', 'type': 's', 'size': 'dlen'}
 ]
 
 ServerResponseBody_Redirect = [

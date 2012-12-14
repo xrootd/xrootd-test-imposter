@@ -21,6 +21,9 @@ import struct
 
 import XProtocol
 import HandshakeHelper
+import MessageHelper
+import LoginHelper
+import AuthHelper
 
 from Utils import format_length
 
@@ -41,21 +44,29 @@ class ServerResponseHelperException(Exception):
 class ServerResponseHelper:
   
   def __init__(self, context):
+    self.context = context
     self.sock = context['socket']
     self.clientadd = context['address']
     self.clientnum = context['number']
+    self.seclib = context['seclib']
+    
+    self.mh = MessageHelper.MessageHelper(context)
   
   def handshake(self):
-    handshake = HandshakeHelper.HandshakeHelper()
+    handshake = HandshakeHelper.HandshakeHelper(self.context)
     
-    request = handshake.unpack_request(self.sock.recv(20))
-    self.sock.send(handshake.response)
-    
-    format = '>HHl10cBcl'
-    print struct.unpack(format, self.sock.recv(format_length(format)))
+    request_raw = self.mh.receive_request(handshake.request_format)
+    request = handshake.unpack_request(request_raw)
+    print 'handshake request:\t', request
+    self.mh.send_response(handshake.response)
+
+  def login(self):
+    login = LoginHelper.LoginHelper(self.context)
   
-  
-  
+    request_raw = self.mh.receive_request(login.request_format)
+    request = login.unpack_request(request_raw)
+    print 'login request:\t', request
+    self.mh.send_response(login.response(request[0]))
   
   
   

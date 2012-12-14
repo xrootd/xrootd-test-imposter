@@ -28,47 +28,38 @@ from Utils import format_length
 
 class AuthHelper:
   
-  def __init__(self, context, response):
-    self.authparams = ''.join(response[4:])
-    self.seclib = context['seclib']
-    self.streamid = context['streamid']
-    self.sock = context['socket']
-    
+  def __init__(self, context):
+    self.context = context
     self.mh = MessageHelper.MessageHelper(context)
-    self.getcredentials()
-    
-  @property
-  def request(self):
-    request_struct = self.mh.get_struct('ClientAuthRequest')
-    params = {'streamid'  : self.streamid,
-              'requestid' : self.requestid,
-              'reserved'  : self.reserved,
-              'credtype'  : self.credtype,
-              'dlen'      : self.credlen,
-              'cred'      : self.credentials}
-    
-    return self.mh.build_request(request_struct, params)
 
+  def request(self, authparams):
+    credname, credentials, credlen = \
+    self.getcredentials(authparams, 
+                        self.context['seclib'],
+                        self.context['sock'].fileno())
+    
+    request_struct = self.mh.get_struct('ClientAuthRequest')
+    params = {'streamid'  : self.context['streamid'],
+              'requestid' : self.requestid,
+              'reserved'  : 12 * '\0',
+              'credtype'  : list(credname.ljust(4, '\0')),
+              'dlen'      : credlen,
+              'cred'      : credentials}
+    
+    return self.mh.build_message(request_struct, params)
+  
   @property
   def requestid(self):
     return XProtocol.XRequestTypes.kXR_auth
   
-  @property
-  def reserved(self):
-    return 12 * '\0'
-  
-  @property
-  def credtype(self):
-    return list(self.credname.ljust(4, '\0'))
-    
-  def getcredentials(self):
+  def getcredentials(self, authparams, seclib, sockfd):
     try:
-      self.credname, self.credentials, self.credlen \
-      = get_credentials(self.authparams, self.seclib, self.sock.fileno())
-      self.credentials = list(self.credentials.ljust(self.credlen, '\0'))
+      credname, cred, credlen = get_credentials(authparams, seclib, sockfd)
+      credentials = list(cred.ljust(credlen, '\0'))
     except IOError, e:
       print "[!] Error authenticating:", e
       sys.exit(1)
+    return credname, credentials, credlen
       
   def unpack_response(self, response):
     response_struct = self.mh.get_struct('ServerResponseHeader')

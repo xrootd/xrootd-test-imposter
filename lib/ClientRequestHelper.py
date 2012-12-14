@@ -42,7 +42,7 @@ class ClientRequestHelper:
   def _do_request(self, requestid, request_struct, params):
     """Return an unpacked representation of a response to the given
     request."""
-    request = self.mh.build_request(request_struct, params) 
+    request = self.mh.build_message(request_struct, params) 
     response_raw = self.mh.send_request(requestid, request)
     return self.mh.unpack_response(response_raw, requestid)
   
@@ -56,9 +56,10 @@ class ClientRequestHelper:
     
   def kXR_login(self, username, admin):
     """Perform login sequence."""
-    login = LoginHelper.LoginHelper(self.context, username, admin)
+    login = LoginHelper.LoginHelper(self.context)
 
-    response_raw = self.mh.send_request(login.requestid, login.request)
+    response_raw = self.mh.send_request(login.requestid, 
+                                        login.request(username, admin))
     response = login.unpack_response(response_raw)
     print 'login response:\t\t', response
     
@@ -66,9 +67,11 @@ class ClientRequestHelper:
       self.kXR_auth(response[1]['message'])
       
   def kXR_auth(self, response):
-    auth = AuthHelper.AuthHelper(self.context, response)
+    auth = AuthHelper.AuthHelper(self.context)
+    authparams = ''.join(response[4:])
     
-    response_raw  = self.mh.send_request(auth.requestid, auth.request)
+    response_raw  = self.mh.send_request(auth.requestid, 
+                                         auth.request(authparams))
     response      = auth.unpack_response(response_raw)
     print 'auth response:\t\t', response
     

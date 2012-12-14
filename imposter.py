@@ -78,6 +78,8 @@ def runPassive( scenario ):
     
     if desc.has_key('seclib'):
       context.update({'seclib': desc['seclib']})
+    if desc.has_key('secparams'):
+      context.update({'secparams': desc['secparams']})
 
     scObj = scenario()
     if not callable( scObj ):

@@ -21,63 +21,59 @@ import struct
 
 import XProtocol
 import MessageHelper
-from Utils import flatten, format_length
+from Utils import flatten, format_length, struct_format, gen_sessid
 
 class LoginHelper:
   """Class to aid in performing an xrootd login sequence."""
 
-  def __init__(self, context, username, admin):
-    self.streamid = context['streamid']
-    self.user = username
-    self.admin = admin
+  def __init__(self, context):
+    self.context = context
     self.mh = MessageHelper.MessageHelper(context)
     
-  @property
-  def request(self):
+  def request(self, username, admin):
     request_struct = self.mh.get_struct('ClientLoginRequest')
-    params = {'streamid'  : self.streamid,
+    params = {'streamid'  : self.context['streamid'],
               'requestid' : self.requestid,
-              'pid'       : self.pid,
-              'username'  : self.username,
+              'pid'       : os.getpid(),
+              'username'  : list(username[:8].ljust(8, "\0")),
               'reserved'  : '\0',
               'zone'      : '\0',
-              'capver'    : self.capver,
-              'role'      : self.role,
-              'dlen'      : self.dlen}     
+              'capver'    : chr(XProtocol.XLoginCapVer.kXR_asyncap \
+                                | XProtocol.XLoginVersion.kXR_ver003),
+              'role'      : '1' if admin else '0',
+              'dlen'      : 0}
     
-    return self.mh.build_request(request_struct, params)
+    return self.mh.build_message(request_struct, params)
   
-  @property
-  def response(self):
-    pass
+  def response(self, streamid):
+    response_struct = self.mh.get_struct('ServerResponseHeader') + \
+                      self.mh.get_struct('ServerResponseBody_Login')
+                      
+    sec = self.context['secparams']
+    params = {'streamid'  : streamid,
+              'status'    : XProtocol.XResponseType.kXR_ok,
+              'dlen'      : len(sec) + 16,
+              'sessid'    : gen_sessid(),
+              'sec'       : sec}
+    
+    return self.mh.build_message(response_struct, params)
   
   @property
   def requestid(self):
     return XProtocol.XRequestTypes.kXR_login
   
   @property
-  def pid(self):
-    return os.getpid()
-  
-  @property
-  def username(self):
-    return list(self.user[:8].ljust(8, "\0"))
-  
-  @property
-  def capver(self):
-    return chr(XProtocol.XLoginCapVer.kXR_asyncap \
-           | XProtocol.XLoginVersion.kXR_ver003)
+  def request_format(self):
+    return struct_format(self.mh.get_struct('ClientLoginRequest'))
 
-  @property
-  def role(self):
-    return '1' if self.admin else '0'
+  def unpack_request(self, request):
+    request_struct = self.mh.get_struct('ClientLoginRequest')
+    format = '>'
     
-  @property
-  def dlen(self):
-    return 0
-    
-  def unpack_request(self):
-    pass
+    for member in request_struct:
+      format += member['type']
+      
+    return struct.unpack(format, request)
     
   def unpack_response(self, response):
     response_struct = self.mh.get_struct('ServerResponseHeader') \

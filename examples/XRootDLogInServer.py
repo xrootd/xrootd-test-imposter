@@ -16,19 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-import time
-import struct
-
 from lib.ServerResponseHelper import ServerResponseHelper
-from lib.Utils import format_length
 
 class XRootDLogInServer:
   @classmethod
   def getDescription( cls ):
-    return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1 }
+    return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
+             'seclib': 'libXrdSec.so', 'secparams': 'unix' }
 
   def __call__( self, context ):
     server = ServerResponseHelper(context)
     
     server.handshake()
+    server.login()
     

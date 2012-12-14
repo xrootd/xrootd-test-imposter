@@ -24,13 +24,12 @@ class MessageHelper:
   
   def __init__(self, context):
     self.sock = context['socket']
-    self.streamid = context['streamid']
-  
-  def build_request(self, request_struct, params):
+
+  def build_message(self, request_struct, params):
     """Return a packed representation of the given params mapped onto
     the given request struct."""    
     if not len(params) == len(request_struct):
-      raise MessageHelperException("[!] Error building request: wrong " + \
+      raise MessageHelperException("Error building request: wrong " + \
                                    "number of parameters")
       
     request = tuple()
@@ -62,6 +61,20 @@ class MessageHelper:
       raise MessageHelperException('Error receiving %s response: %s' 
                                          % (requestid, e))
     return response    
+  
+  def send_response(self, response):
+    try:
+      self.sock.send(response)
+    except socket.error, e:
+      raise MessageHelperException('Error sending response: %s' % e)
+  
+  def receive_request(self, format):
+    try:
+      request = self.sock.recv(format_length(format))
+    except socket.error, e:
+      raise MessageHelperException('Error receiving request: %s' % e)
+    
+    return request
   
   def unpack_response(self, response, requestid):
     """Return an unpacked tuple representation of a server response."""

@@ -19,6 +19,8 @@
 import struct
 import MessageHelper
 
+from Utils import struct_format
+
 
 class HandshakeHelper:
   """Class to aid making initial xrootd handshakes."""
@@ -36,20 +38,24 @@ class HandshakeHelper:
               'fourth'  : 4,
               'fifth'   : 2012}
     
-    return self.mh.build_request(request_struct, params)
+    return self.mh.build_message(request_struct, params)
   
   @property
   def response(self):
     """Return a packed representation of a server handshake response."""
     response_struct = self.mh.get_struct('ServerResponseHeader') \
                     + self.mh.get_struct('ServerInitHandShake')
-    params = {'streamid'  : '\0\0',
+    params = {'streamid'  : 0,
               'status'    : 0,
               'dlen'      : 8,
               'protover'  : 663,
-              'msgvar'    : 1}
+              'msgval'    : 1}
     
-    return self.mh.build_request(response_struct, params)
+    return self.mh.build_message(response_struct, params)
+  
+  @property
+  def request_format(self):
+    return struct_format(self.mh.get_struct('ClientInitHandShake'))
   
   def unpack_request(self, request):
     """Return an unpacked tuple representation of a client handshake

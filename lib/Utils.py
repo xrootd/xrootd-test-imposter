@@ -41,4 +41,13 @@ def format_length(format):
       length += mapping[g[-1]]
   return length 
     
-    
+def struct_format(struct):
+  format = '>'
+  
+  for member in struct:
+    format += member['type']
+  
+  return format
+
+def gen_sessid():
+  return 16 * '\0'
