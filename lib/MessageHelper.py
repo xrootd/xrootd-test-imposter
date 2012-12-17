@@ -25,18 +25,18 @@ class MessageHelper:
   def __init__(self, context):
     self.sock = context['socket']
 
-  def build_message(self, request_struct, params):
+  def build_message(self, message_struct, params):
     """Return a packed representation of the given params mapped onto
-    the given request struct."""    
-    if not len(params) == len(request_struct):
-      raise MessageHelperException("Error building request: wrong " + \
-                                   "number of parameters")
+    the given message struct."""    
+    if not len(params) == len(message_struct):
+      print "[!] Error building message: wrong number of parameters"
+      sys.exit(1)
       
-    request = tuple()
+    message = tuple()
     format = '>'
     
-    for member in request_struct:
-      request += (params[member['name']],)
+    for member in message_struct:
+      message += (params[member['name']],)
       if member.has_key('size'):
         if member['size'] == 'dlen':
           format += str(params[member['size']]) + member['type']
@@ -45,35 +45,37 @@ class MessageHelper:
       else: 
         format += member['type']
 
-    request = tuple(flatten(request))
-    return struct.pack(format, *request)
+    message = tuple(flatten(message))
+    return struct.pack(format, *message)
     
   def send_request(self, requestid, request):
     """Send a packed request and return a packed response."""
     try:
       self.sock.send(request)
     except socket.error, e:
-      raise MessageHelperException('Error sending %s request: %s' 
-                                         % (requestid, e))
+      print 'Error sending %s request: %s' % (requestid, e)
+      sys.exit(1)
     try:  
       response = self.sock.recv(4096)
     except socket.error, e:
-      raise MessageHelperException('Error receiving %s response: %s' 
-                                         % (requestid, e))
+      print 'Error receiving %s response: %s' % (requestid, e)
+      sys.exit(1)
     return response    
   
   def send_response(self, response):
     try:
       self.sock.send(response)
     except socket.error, e:
-      raise MessageHelperException('Error sending response: %s' % e)
+      print 'Error sending response: %s' % e
+      sys.exit(1)
   
   def receive_request(self, format):
     try:
       request = self.sock.recv(format_length(format))
     except socket.error, e:
-      raise MessageHelperException('Error receiving request: %s' % e)
-    
+      print 'Error receiving request: %s' % e
+      sys.exit(1)
+      
     return request
   
   def unpack_response(self, response, requestid):
@@ -103,14 +105,34 @@ class MessageHelper:
     
     response = struct.unpack(format, response)
     return self.get_responseid(response[1]), response
+  
+  def unpack_request(self, request_raw):
+    format = '>HH'
+    request_type = struct.unpack(format
+                                 + (str(len(request_raw) 
+                                    - format_length(format)) + 's'), 
+                                 request_raw)[1]
+    request_type = XProtocol.XRequestTypes.reverse_mapping[request_type]
+    request_struct = self.get_struct('Client' + 
+                                        request_type[4:].title() + 
+                                        'Request')
     
+    format = '>'
+    for member in request_struct:
+      if member.has_key('size'):
+        format += str(member['size']) + member['type']
+      else: 
+        format += member['type']
+
+    return struct.unpack(format, request_raw)
+  
   def get_struct(self, name):
     """Return a representation of a struct as a list of dicts."""
     if hasattr(XProtocol, name):
         return getattr(XProtocol, name)
     else:
-      raise MessageHelperException("[!] XProtocol struct not found: %s" 
-                                   % name)
+      print "[!] XProtocol struct not found: %s" % name
+      sys.exit(1)
     
   def get_requestid(self, requestid):
     """Return the integer request ID associated with the given string

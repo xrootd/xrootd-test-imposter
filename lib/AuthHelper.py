@@ -24,7 +24,7 @@ import XProtocol
 import MessageHelper
 
 from authbind import get_credentials
-from Utils import format_length
+from Utils import format_length, struct_format
 
 class AuthHelper:
   
@@ -52,6 +52,10 @@ class AuthHelper:
   def requestid(self):
     return XProtocol.XRequestTypes.kXR_auth
   
+  @property
+  def request_format(self):
+    return struct_format(self.mh.get_struct('ClientAuthRequest'))
+  
   def getcredentials(self, authparams, seclib, sockfd):
     try:
       credname, cred, credlen = get_credentials(authparams, seclib, sockfd)
@@ -60,6 +64,25 @@ class AuthHelper:
       print "[!] Error authenticating:", e
       sys.exit(1)
     return credname, credentials, credlen
+  
+  def unpack_request(self, request):
+    request_struct = self.mh.get_struct('ClientAuthRequest')
+    format = '>'
+    
+    for member in request_struct:
+      if member['name'] == 'cred':
+        continue
+      if member.has_key('size'):
+        format += (str(member['size']) + member['type'])
+      else:
+        format += member['type']
+        
+    format += (str(format_length(format) - len(request))  + 's')
+    print len(request)
+    print format_length(format)
+    print format
+    print struct.unpack('>7s', request)
+    return struct.unpack(format, request)
       
   def unpack_response(self, response):
     response_struct = self.mh.get_struct('ServerResponseHeader')

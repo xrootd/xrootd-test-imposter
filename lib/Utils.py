@@ -45,7 +45,10 @@ def struct_format(struct):
   format = '>'
   
   for member in struct:
-    format += member['type']
+    if member.has_key('size'):
+        format += (str(member['size']) + member['type'])
+    else:
+      format += member['type']
   
   return format
 

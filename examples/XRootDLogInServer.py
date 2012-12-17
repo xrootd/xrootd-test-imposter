@@ -28,5 +28,9 @@ class XRootDLogInServer:
     server = ServerResponseHelper(context)
     
     server.handshake()
+    server.protocol()
     server.login()
+    server.auth()
+    
+    
     

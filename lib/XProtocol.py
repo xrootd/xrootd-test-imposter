@@ -276,7 +276,7 @@ ClientAuthRequest = [
   {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'credtype', 'type': 'c', 'size': 4},
   {'name': 'dlen', 'type': 'l'},
-  {'name': 'cred', 'type': 'c', 'size': 'dlen'}
+  {'name': 'cred', 'type': 's'}
 ]
 
 ClientBindRequest = [

@@ -25,7 +25,7 @@ import MessageHelper
 import LoginHelper
 import AuthHelper
 
-from Utils import format_length
+from Utils import format_length, struct_format
 
 class ServerResponseHelperException(Exception):
   """General Exception raised by ServerResponseHelper."""
@@ -59,16 +59,37 @@ class ServerResponseHelper:
     request = handshake.unpack_request(request_raw)
     print 'handshake request:\t', request
     self.mh.send_response(handshake.response)
-
+    
+  def protocol(self):
+    request_struct = self.mh.get_struct('ClientProtocolRequest')
+    request_raw = self.mh.receive_request(struct_format(request_struct))
+    request = self.mh.unpack_request(request_raw)
+    print 'protocol request:\t', request
+    
+    response_struct = self.mh.get_struct('ServerResponseHeader') + \
+                      self.mh.get_struct('ServerResponseBody_Protocol')
+    params = {'streamid': request[0],
+              'status'  : XProtocol.XResponseType.kXR_ok,
+              'dlen'    : 8,
+              'pval'    : XProtocol.kXR_PROTOCOLVERSION,
+              'flags'   : XProtocol.kXR_isServer}
+    
+    self.mh.send_response(self.mh.build_message(response_struct, params))
+    
   def login(self):
     login = LoginHelper.LoginHelper(self.context)
   
     request_raw = self.mh.receive_request(login.request_format)
-    request = login.unpack_request(request_raw)
-    print 'login request:\t', request
+    request = self.mh.unpack_request(request_raw)
+    print 'login request:\t\t', request
     self.mh.send_response(login.response(request[0]))
   
-  
+  def auth(self):
+    auth = AuthHelper.AuthHelper(self.context)
+    
+    request_raw = self.mh.receive_request(auth.request_format)
+    request = auth.unpack_request(request_raw)
+    print 'auth request:\t\t'
   
   
   

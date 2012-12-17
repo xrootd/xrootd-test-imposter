@@ -91,8 +91,8 @@ class LoginHelper:
     if len(response) > 24:
       # Authentication needed
       auth = True
-      response = struct.unpack(format + (str(len(response) 
-                                             - format_length(format)) + 's'), 
+      response = struct.unpack(format + 
+                               (str(len(response) - format_length(format)) + 's'), 
                                response)
     else:
       # Authentication not needed
