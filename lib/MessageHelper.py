@@ -39,7 +39,11 @@ class MessageHelper:
       message += (params[member['name']],)
       if member.has_key('size'):
         if member['size'] == 'dlen':
-          format += str(params[member['size']]) + member['type']
+          if member.has_key('offset'):
+            format += str(params[member['size']] - member['offset']) \
+                      + member['type']
+          else:
+            format += str(params[member['size']]) + member['type']
         else:
           format += str(member['size']) + member['type']
       else: 
@@ -89,10 +93,8 @@ class MessageHelper:
     dlen = struct.unpack(format + ('s' * (len(response) - 8))
                                       , response)[2]
     
-    try:
-      body_struct = self.get_struct('ServerResponseBody_' 
-                                      + requestid[4:].title())
-    except: body_struct = list()
+    body_struct = self.get_struct('ServerResponseBody_' + requestid[4:].title())
+    if not body_struct: body_struct = list()
     
     for member in body_struct:
       if member.has_key('size'):
@@ -130,9 +132,6 @@ class MessageHelper:
     """Return a representation of a struct as a list of dicts."""
     if hasattr(XProtocol, name):
         return getattr(XProtocol, name)
-    else:
-      print "[!] XProtocol struct not found: %s" % name
-      sys.exit(1)
     
   def get_requestid(self, requestid):
     """Return the integer request ID associated with the given string

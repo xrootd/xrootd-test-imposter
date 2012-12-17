@@ -17,6 +17,7 @@
 #-------------------------------------------------------------------------------
 
 import re
+import random
 
 def flatten(*args):
   """Return a flat list or tuple from a nested one."""
@@ -46,6 +47,9 @@ def struct_format(struct):
   
   for member in struct:
     if member.has_key('size'):
+      if member['size'] == 'dlen':
+        format += str(4096) + member['type']
+      else:
         format += (str(member['size']) + member['type'])
     else:
       format += member['type']
@@ -53,4 +57,5 @@ def struct_format(struct):
   return format
 
 def gen_sessid():
-  return 16 * '\0'
+  return str(random.randrange(9999999999999999)).zfill(16)
+

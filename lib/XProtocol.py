@@ -276,7 +276,7 @@ ClientAuthRequest = [
   {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'credtype', 'type': 'c', 'size': 4},
   {'name': 'dlen', 'type': 'l'},
-  {'name': 'cred', 'type': 's'}
+  {'name': 'cred', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientBindRequest = [
@@ -554,7 +554,7 @@ ServerResponseBody_Protocol = [
 
 ServerResponseBody_Login = [
   {'name': 'sessid', 'type': 's', 'size': 16},
-  {'name': 'sec', 'type': 's', 'size': 'dlen'}
+  {'name': 'sec', 'type': 'c', 'size': 'dlen', 'offset': 16}
 ]
 
 ServerResponseBody_Redirect = [

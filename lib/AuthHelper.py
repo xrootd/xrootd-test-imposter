@@ -36,7 +36,7 @@ class AuthHelper:
     credname, credentials, credlen = \
     self.getcredentials(authparams, 
                         self.context['seclib'],
-                        self.context['sock'].fileno())
+                        self.context['socket'].fileno())
     
     request_struct = self.mh.get_struct('ClientAuthRequest')
     params = {'streamid'  : self.context['streamid'],
@@ -59,7 +59,7 @@ class AuthHelper:
   def getcredentials(self, authparams, seclib, sockfd):
     try:
       credname, cred, credlen = get_credentials(authparams, seclib, sockfd)
-      credentials = list(cred.ljust(credlen, '\0'))
+      credentials = cred.ljust(credlen, '\0')
     except IOError, e:
       print "[!] Error authenticating:", e
       sys.exit(1)
@@ -77,11 +77,9 @@ class AuthHelper:
       else:
         format += member['type']
         
-    format += (str(format_length(format) - len(request))  + 's')
-    print len(request)
-    print format_length(format)
-    print format
-    print struct.unpack('>7s', request)
+    format += (str(len(request) - format_length(format))  + 's')
+    print struct.unpack(str(len(request)) + 'c', request)
+
     return struct.unpack(format, request)
       
   def unpack_response(self, response):
@@ -92,7 +90,7 @@ class AuthHelper:
       format += member['type']
     
     if len(response) > format_length(format):
-      format += (str(len(response) - format_length(format)) + 'c')
+      format += (str(len(response) - format_length(format)) + 's')
       
     response = struct.unpack(format, response)
     return self.mh.get_responseid(response[1]), response
