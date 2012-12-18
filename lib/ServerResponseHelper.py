@@ -90,7 +90,7 @@ class ServerResponseHelper:
     request_raw = self.mh.receive_request(auth.request_format)
     request = auth.unpack_request(request_raw)
     print 'auth request:\t\t', request
-    auth.authenticate(request[-1])
+    auth.auth(request[-1])
   
   
   

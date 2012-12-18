@@ -19,7 +19,9 @@
 #include <Python.h>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <sstream>
+#include <stdio.h>
 #include <dlfcn.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -28,6 +30,7 @@
 #include "xrootd/XrdSec/XrdSecInterface.hh"
 #include "xrootd/XrdOuc/XrdOucEnv.hh"
 #include "xrootd/XrdOuc/XrdOucErrInfo.hh"
+#include "xrootd/XrdSys/XrdSysLogger.hh"
 
 using namespace std;
 
@@ -36,6 +39,112 @@ using namespace std;
 //------------------------------------------------------------------------------
 typedef XrdSecProtocol *(*XrdSecGetProt_t)(const char *, const sockaddr &,
 		const XrdSecParameters &, XrdOucErrInfo *);
+
+typedef XrdSecService *(*XrdSecGetServ_t)(XrdSysLogger *, const char *);
+
+extern "C" {
+
+static PyObject* authenticate(PyObject *self, PyObject *args) {
+
+	int sock;
+	struct sockaddr_in *sockadd;
+	PyByteArrayObject *creds;
+	const char* authLibName;
+	const char* confFile;
+	char *tempConfFile;
+	string protocolName;
+	stringstream err;
+	XrdSecCredentials *credentials = 0;
+	XrdSecParameters *authParams;
+	XrdSecProtocol *authProtocol;
+	XrdOucEnv *authEnv;
+
+	XrdSysLogger logger;
+	XrdSecService *securityService;
+
+	// Parse the python parameters
+	if (!PyArg_ParseTuple(args, "Ossi", &creds, &authLibName, &confFile, &sock))
+		return NULL;
+
+	//PyObject_Print((PyObject*) creds, stdout, 0);
+	char* credsCopy;
+	credsCopy = PyByteArray_AsString((PyObject*) creds);
+	size_t credLen = strlen(credsCopy);
+
+	// Create a sockaddr_in from the socket descriptor given
+	socklen_t socklen = sizeof(struct sockaddr_in);
+	sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
+	getsockname(sock, (sockaddr*) sockadd, &socklen);
+
+	// Prepare some variables
+	authEnv = new XrdOucEnv();
+	authEnv->Put("sockname", "");
+	XrdOucErrInfo ei("", authEnv);
+	credentials = new XrdSecCredentials((char*) credsCopy, credLen);
+
+	//--------------------------------------------------------------------------
+	// dlopen the library
+	//--------------------------------------------------------------------------
+	void *pSecLibHandle = ::dlopen(authLibName, RTLD_NOW);
+	if (!pSecLibHandle) {
+		err << "Unable to load the authentication library " << authLibName
+				<< ": " << ::dlerror() << std::endl;
+		PyErr_SetString(PyExc_IOError, err.str().c_str());
+		return NULL;
+	}
+
+	//--------------------------------------------------------------------------
+	// Get the authentication function handle
+	//--------------------------------------------------------------------------
+	XrdSecGetServ_t authHandler = (XrdSecGetServ_t) dlsym(pSecLibHandle,
+			"XrdSecgetService");
+	if (!authHandler) {
+		err << "Unable to get the XrdSecgetService symbol from library "
+				<< authLibName << ": " << ::dlerror() << endl;
+		PyErr_SetString(PyExc_IOError, err.str().c_str());
+		::dlclose(pSecLibHandle);
+		pSecLibHandle = 0;
+		return NULL;
+	}
+
+	tempConfFile = tmpnam(NULL);
+	ofstream out(tempConfFile);
+	out << confFile;
+	out.close();
+
+	setenv("XRDINSTANCE", "imposter", 1);
+
+	securityService = (*authHandler)(&logger, tempConfFile);
+	if (!securityService) {
+		cerr << "Unable to create security service." << endl;
+		exit(1);
+	}
+
+	//----------------------------------------------------------------------
+	// Get the protocol
+	//----------------------------------------------------------------------
+	authProtocol = securityService->getProtocol((const char *) "localhost",
+							(const sockaddr &) sockadd,
+							(const XrdSecCredentials *) credentials, &ei);
+	if (!authProtocol) {
+		err << "getProtocol error: " << ei.getErrText() << endl;
+		PyErr_SetString(PyExc_IOError, err.str().c_str());
+		return NULL;
+	}
+
+	//----------------------------------------------------------------------
+	// Now convert the credentials
+	//----------------------------------------------------------------------
+	if (authProtocol->Authenticate(credentials, &authParams, &ei) < 0) {
+		cout << "Authentication error: " << ei.getErrText() << endl;
+		authProtocol->Delete();
+	}
+
+	cout << "authenticated successfully with " << credentials->buffer << endl;
+
+	return Py_BuildValue("");
+}
+}
 
 extern "C" {
 
@@ -60,12 +169,12 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 	socklen_t socklen = sizeof(struct sockaddr_in);
 	sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
 	getsockname(sock, (sockaddr*) sockadd, &socklen);
-	size_t authBuffLen = strlen(authBuffer);
 
 	// Prepare some variables
 	authEnv = new XrdOucEnv();
 	authEnv->Put("sockname", "");
 	XrdOucErrInfo ei("", authEnv);
+	size_t authBuffLen = strlen(authBuffer);
 	authParams = new XrdSecParameters((char*) authBuffer, authBuffLen);
 
 	//--------------------------------------------------------------------------
@@ -125,16 +234,17 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 			break;
 	}
 
-	return Py_BuildValue("ssi", protocolName.c_str(),
-						  credentials->buffer,
-						  credentials->size);
+	return Py_BuildValue("ssi", protocolName.c_str(), credentials->buffer,
+			credentials->size);
+
 }
 }
 
-static PyMethodDef AuthBindMethods[] = {
-	{ "get_credentials", get_credentials, METH_VARARGS,
-			"Get opaque credentials object." },
-	{ NULL, NULL, 0, NULL } /* Sentinel */
+static PyMethodDef AuthBindMethods[] = { { "get_credentials", get_credentials,
+		METH_VARARGS, "Get opaque credentials object." }, { "authenticate",
+		authenticate, METH_VARARGS,
+		"Authenticate credentials provided by a client." }, { NULL, NULL, 0,
+		NULL } /* Sentinel */
 };
 
 PyMODINIT_FUNC initauthbind(void) {

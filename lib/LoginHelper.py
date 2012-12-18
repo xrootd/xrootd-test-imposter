@@ -50,7 +50,7 @@ class LoginHelper:
     response_struct = self.mh.get_struct('ServerResponseHeader') + \
                       self.mh.get_struct('ServerResponseBody_Login')
                       
-    sec = list('&P=' + self.context['secparams'])
+    sec = list('&P=' + self.context['sec.protocol'])
     params = {'streamid'  : streamid,
               'status'    : XProtocol.XResponseType.kXR_ok,
               'dlen'      : len(sec) + 16,

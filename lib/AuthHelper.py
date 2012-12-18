@@ -19,11 +19,12 @@
 import sys
 import socket
 import struct
+import tempfile
 
 import XProtocol
 import MessageHelper
 
-from authbind import get_credentials
+from authbind import get_credentials, authenticate
 from Utils import format_length, struct_format
 
 class AuthHelper:
@@ -45,7 +46,7 @@ class AuthHelper:
               'credtype'  : list(credname.ljust(4, '\0')),
               'dlen'      : credlen,
               'cred'      : credentials}
-    
+    print 'cred:', credentials
     return self.mh.build_message(request_struct, params)
   
   @property
@@ -61,9 +62,19 @@ class AuthHelper:
       credname, cred, credlen = get_credentials(authparams, seclib, sockfd)
       credentials = cred.ljust(credlen, '\0')
     except IOError, e:
-      print "[!] Error authenticating:", e
+      print "[!] Error getting credentials:", e
       sys.exit(1)
     return credname, credentials, credlen
+  
+  def auth(self, creds):
+    try:
+      authenticate(bytearray(creds), 
+                   self.context['seclib'],
+                   'sec.protocol ' + self.context['sec.protocol'] + '\n',
+                   self.context['socket'].fileno())
+    except IOError, e:
+      print "[!] Error authenticating:", e
+      sys.exit(1)
   
   def unpack_request(self, request):
     request_struct = self.mh.get_struct('ClientAuthRequest')
@@ -78,8 +89,6 @@ class AuthHelper:
         format += member['type']
         
     format += (str(len(request) - format_length(format))  + 's')
-    print struct.unpack(str(len(request)) + 'c', request)
-
     return struct.unpack(format, request)
       
   def unpack_response(self, response):
@@ -94,4 +103,3 @@ class AuthHelper:
       
     response = struct.unpack(format, response)
     return self.mh.get_responseid(response[1]), response
-
