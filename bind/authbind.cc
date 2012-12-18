@@ -99,7 +99,7 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
 	//----------------------------------------------------------------------
 	securityService = (*authHandler)(&logger, tempConfFile);
 	if (!securityService) {
-		err << "Unable to create security service." << endl;
+		err << "Unable to create security service" << endl;
 		PyErr_SetString(PyExc_IOError, err.str().c_str());
 		return NULL;
 	}
@@ -197,8 +197,9 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
 	//----------------------------------------------------------------------
 	securityService = (*authHandler)(&logger, tempConfFile);
 	if (!securityService) {
-		cerr << "Unable to create security service." << endl;
-		exit(1);
+		err << "Unable to create security service" << endl;
+		PyErr_SetString(PyExc_IOError, err.str().c_str());
+		return NULL;
 	}
 
 	//----------------------------------------------------------------------
@@ -217,11 +218,13 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
 	// Now authenticate the credentials
 	//----------------------------------------------------------------------
 	if (authProtocol->Authenticate(credentials, &authParams, &ei) < 0) {
-		cout << "Authentication error: " << ei.getErrText() << endl;
 		authProtocol->Delete();
+		err << "Authentication error: " << ei.getErrText() << endl;
+		PyErr_SetString(PyExc_IOError, err.str().c_str());
+		return NULL;
 	}
-	cout << "authenticated successfully with " << credentials->buffer << endl;
 
+	cout << "authenticated successfully with " << credentials->buffer << endl;
 	// Don't need to return anything
 	return Py_BuildValue("");
 }
