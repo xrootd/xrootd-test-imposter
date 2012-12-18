@@ -92,22 +92,26 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
 	out << secConfig;
 	out.close();
 
+	setenv("XRDINSTANCE", "imposter", 1);
+
 	//----------------------------------------------------------------------
 	// Get the security service object
 	//----------------------------------------------------------------------
 	securityService = (*authHandler)(&logger, tempConfFile);
 	if (!securityService) {
-		cerr << "Unable to create security service." << endl;
-		exit(1);
+		err << "Unable to create security service." << endl;
+		PyErr_SetString(PyExc_IOError, err.str().c_str());
+		return NULL;
 	}
 
 	const char *token = securityService->getParms(i, host);
 	if (!token) {
-		cerr << "No security token for " << host << endl;
-	} else {
-		cerr << "Sec token='" << token << "'" << endl;
+		err << "No security token for " << host << endl;
+		PyErr_SetString(PyExc_IOError, err.str().c_str());
+		return NULL;
 	}
 
+	cout << "Sec token='" << token << "'" << endl;
 	return Py_BuildValue("s", token);
 }
 }

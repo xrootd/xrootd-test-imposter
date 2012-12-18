@@ -67,8 +67,12 @@ class AuthHelper:
     return credname, credentials, credlen
   
   def get_sec_token(self):
-    return get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
+    try:
+      token = get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
                      self.context['seclib'])
+    except IOError, e:
+      print "[!] Error getting security token:", e
+      sys.exit(1)
   
   def auth(self, creds):
     try:
