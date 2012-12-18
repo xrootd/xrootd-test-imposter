@@ -24,7 +24,7 @@ import tempfile
 import XProtocol
 import MessageHelper
 
-from authbind import get_credentials, authenticate
+from authbind import get_credentials, authenticate, get_parms
 from Utils import format_length, struct_format
 
 class AuthHelper:
@@ -65,6 +65,10 @@ class AuthHelper:
       print "[!] Error getting credentials:", e
       sys.exit(1)
     return credname, credentials, credlen
+  
+  def get_sec_token(self):
+    return get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
+                     self.context['seclib'])
   
   def auth(self, creds):
     try:

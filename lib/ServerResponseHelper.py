@@ -26,33 +26,15 @@ import LoginHelper
 import AuthHelper
 
 from Utils import format_length, struct_format
-
-class ServerResponseHelperException(Exception):
-  """General Exception raised by ServerResponseHelper."""
-    
-  def __init__(self, desc):
-    """Construct an exception.
-        
-    @param desc: description of an error
-    """
-    self.desc = desc
-
-  def __str__(self):
-    """Return textual representation of an error."""
-    return str(self.desc)
       
 class ServerResponseHelper:
   
   def __init__(self, context):
-    self.context = context
-    self.sock = context['socket']
-    self.clientadd = context['address']
-    self.clientnum = context['number']
-    self.seclib = context['seclib']
-    
+    self.context = context    
     self.mh = MessageHelper.MessageHelper(context)
   
   def handshake(self):
+    """Receive an initial handshake request and send the response."""
     handshake = HandshakeHelper.HandshakeHelper(self.context)
     
     request_raw = self.mh.receive_request(handshake.request_format)
@@ -61,6 +43,7 @@ class ServerResponseHelper:
     self.mh.send_response(handshake.response)
     
   def protocol(self):
+    """Receive a kXR_protocol request and send the response."""
     request_struct = self.mh.get_struct('ClientProtocolRequest')
     request_raw = self.mh.receive_request(struct_format(request_struct))
     request = self.mh.unpack_request(request_raw)
@@ -77,6 +60,7 @@ class ServerResponseHelper:
     self.mh.send_response(self.mh.build_message(response_struct, params))
     
   def login(self):
+    """Receive a kXR_login request and send the response."""
     login = LoginHelper.LoginHelper(self.context)
   
     request_raw = self.mh.receive_request(login.request_format)
@@ -85,6 +69,7 @@ class ServerResponseHelper:
     self.mh.send_response(login.response(request[0]))
   
   def auth(self):
+    """Receive a kXR_auth request and send the response."""
     auth = AuthHelper.AuthHelper(self.context)
     
     request_raw = self.mh.receive_request(auth.request_format)

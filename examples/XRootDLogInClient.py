@@ -29,8 +29,8 @@ class XRootDLogInClient:
     client = ClientRequestHelper(context)
     
     client.handshake()
-    client.kXR_protocol()
-    client.kXR_login(username='default', admin=False)
-    client.kXR_ping()
-    client.kXR_stat("/tmp")
+    client.protocol()
+    client.login(username='default', admin=False)
+    client.ping()
+    client.stat("/tmp")
     

@@ -31,17 +31,12 @@ class ClientRequestHelper:
   """Class to aid sending/receiving client xrootd messages."""
     
   def __init__(self, context):
-    """Constructor: Store context variables."""
-    self.context = context
-    self.sock = context['socket']
-    self.streamid = context['streamid']
-    self.seclib = context['seclib']
-    
+    self.context = context    
     self.mh = MessageHelper.MessageHelper(context)
     
   def _do_request(self, requestid, request_struct, params):
-    """Return an unpacked representation of a response to the given
-    request."""
+    """Build and send a request, then return an unpacked representation 
+    of the response to the given request."""
     request = self.mh.build_message(request_struct, params) 
     response_raw = self.mh.send_request(requestid, request)
     return self.mh.unpack_response(response_raw, requestid)
@@ -54,8 +49,9 @@ class ClientRequestHelper:
     response = handshake.unpack_response(response_raw)
     print 'handshake response:\t', response
     
-  def kXR_login(self, username, admin):
-    """Perform login sequence."""
+  def login(self, username, admin):
+    """Send/receive a kXR_login request/response. If the response 
+    indicates that authentication is required, make an auth request."""
     login = LoginHelper.LoginHelper(self.context)
 
     response_raw = self.mh.send_request(login.requestid, 
@@ -64,9 +60,10 @@ class ClientRequestHelper:
     print 'login response:\t\t', response
     
     if response[1]['auth']:
-      self.kXR_auth(response[1]['message'])
+      self.auth(response[1]['message'])
       
-  def kXR_auth(self, response):
+  def auth(self, response):
+    """Send/receive a kXR_auth request/response."""
     auth = AuthHelper.AuthHelper(self.context)
     authparams = ''.join(response[4:])
     
@@ -75,11 +72,12 @@ class ClientRequestHelper:
     response      = auth.unpack_response(response_raw)
     print 'auth response:\t\t', response
     
-  def kXR_protocol(self):
+  def protocol(self):
+    """Send/receive a kXR_protocol request/response."""
     request_struct = self.mh.get_struct('ClientProtocolRequest')
     requestid = 'kXR_protocol'
     
-    params = {'streamid'  : self.streamid,
+    params = {'streamid'  : self.context['streamid'],
               'requestid' : self.mh.get_requestid(requestid),
               'clientpv'  : XProtocol.XLoginVersion.kXR_ver003, 
               'reserved'  : (12 * "\0"),
@@ -88,11 +86,12 @@ class ClientRequestHelper:
     response = self._do_request(requestid, request_struct, params)
     print 'protocol response:\t', response
     
-  def kXR_ping(self):
+  def ping(self):
+    """Send/receive a kXR_ping request/response."""
     request_struct = self.mh.get_struct('ClientPingRequest')
     requestid = 'kXR_ping'
     
-    params = {'streamid'  : self.streamid,
+    params = {'streamid'  : self.context['streamid'],
               'requestid' : self.mh.get_requestid(requestid),
               'reserved'  : (16 * "\0"),
               'dlen'      : 0}
@@ -140,10 +139,11 @@ class ClientRequestHelper:
     pass
   
   def kXR_stat(self, path):
+    """Send/receive a kXR_stat request/response."""
     request_struct = self.mh.get_struct('ClientStatRequest')
     requestid = 'kXR_stat'
     
-    params = {'streamid'  : self.streamid,
+    params = {'streamid'  : self.context['streamid'],
               'requestid' : self.mh.get_requestid(requestid),
               'options'   : '0',
               'reserved'  : (11 * "\0"),

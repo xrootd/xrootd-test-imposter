@@ -21,6 +21,7 @@ import struct
 
 import XProtocol
 import MessageHelper
+import AuthHelper
 from Utils import flatten, format_length, struct_format, gen_sessid
 
 class LoginHelper:
@@ -50,12 +51,16 @@ class LoginHelper:
     response_struct = self.mh.get_struct('ServerResponseHeader') + \
                       self.mh.get_struct('ServerResponseBody_Login')
                       
-    sec = list('&P=' + self.context['sec.protocol'])
+    # Check if client needs to authenticate
+    auth = AuthHelper.AuthHelper(self.context)
+    sec = auth.get_sec_token()
+                      
+    # sec = list('&P=' + self.context['sec.protocol'])
     params = {'streamid'  : streamid,
               'status'    : XProtocol.XResponseType.kXR_ok,
               'dlen'      : len(sec) + 16,
               'sessid'    : gen_sessid(),
-              'sec'       : sec}
+              'sec'       : list(sec)}
     
     return self.mh.build_message(response_struct, params)
   
