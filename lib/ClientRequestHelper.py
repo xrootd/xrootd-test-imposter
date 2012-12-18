@@ -138,7 +138,7 @@ class ClientRequestHelper:
   def kXR_sync(self):
     pass
   
-  def kXR_stat(self, path):
+  def stat(self, path):
     """Send/receive a kXR_stat request/response."""
     request_struct = self.mh.get_struct('ClientStatRequest')
     requestid = 'kXR_stat'

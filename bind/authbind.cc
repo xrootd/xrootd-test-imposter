@@ -111,7 +111,7 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
-	cout << "Sec token='" << token << "'" << endl;
+	cout << "sec token: '" << token << "'" << endl;
 	return Py_BuildValue("s", token);
 }
 }

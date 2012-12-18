@@ -610,7 +610,7 @@ ServerResponseBody_Authmore = [
 ]
 
 ServerResponseBody_Buffer = [
-  {'name': 'data', 'type': 'char', 'size': 4096}
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
 # The fields to be sent as initial handshake

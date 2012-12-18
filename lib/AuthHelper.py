@@ -49,6 +49,15 @@ class AuthHelper:
     print 'cred:', credentials
     return self.mh.build_message(request_struct, params)
   
+  def response(self, streamid):
+    response_struct = self.mh.get_struct('ServerResponseHeader')
+                      
+    params = {'streamid'  : streamid,
+              'status'    : XProtocol.XResponseType.kXR_ok,
+              'dlen'      : 0}
+    
+    return self.mh.build_message(response_struct, params)
+  
   @property
   def requestid(self):
     return XProtocol.XRequestTypes.kXR_auth
@@ -73,6 +82,8 @@ class AuthHelper:
     except IOError, e:
       print "[!] Error getting security token:", e
       sys.exit(1)
+    
+    return token
   
   def auth(self, creds):
     try:

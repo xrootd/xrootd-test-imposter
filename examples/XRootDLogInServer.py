@@ -32,6 +32,9 @@ class XRootDLogInServer:
     server.protocol()
     server.login()
     server.auth()
+    server.stat()
+    
+    server.close()
     
     
     

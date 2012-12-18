@@ -76,7 +76,28 @@ class ServerResponseHelper:
     request = auth.unpack_request(request_raw)
     print 'auth request:\t\t', request
     auth.auth(request[-1])
+    self.mh.send_response(auth.response(request[0]))
   
-  
+  def stat(self):
+    """Receive a kXR_stat request and send the response."""
+    request_struct = self.mh.get_struct('ClientStatRequest')
+    request_raw = self.mh.receive_request(struct_format(request_struct))
+    request = self.mh.unpack_request(request_raw)
+    print 'stat request:\t', request
+    
+    response_struct = self.mh.get_struct('ServerResponseHeader') + \
+                      self.mh.get_struct('ServerResponseBody_Buffer')
+                      
+    info = '35235911761153 4096 51 1355867406'
+    
+    params = {'streamid': request[0],
+              'status'  : XProtocol.XResponseType.kXR_ok,
+              'dlen'    : len(info),
+              'data'    : info}
+    
+    self.mh.send_response(self.mh.build_message(response_struct, params))
+    
+  def close(self):
+    self.context['socket'].close()
   
   

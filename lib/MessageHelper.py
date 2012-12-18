@@ -109,20 +109,24 @@ class MessageHelper:
     return self.get_responseid(response[1]), response
   
   def unpack_request(self, request_raw):
-    format = '>HH'
-    request_type = struct.unpack(format
-                                 + (str(len(request_raw) 
-                                    - format_length(format)) + 's'), 
-                                 request_raw)[1]
-    request_type = XProtocol.XRequestTypes.reverse_mapping[request_type]
-    request_struct = self.get_struct('Client' + 
-                                        request_type[4:].title() + 
-                                        'Request')
+    format = '>HHl'
+    request_header = struct.unpack(format
+                                   + (str(len(request_raw) 
+                                   - format_length(format)) + 's'),
+                                   request_raw)
+    
+    request_type = XProtocol.XRequestTypes.reverse_mapping[request_header[1]]
+    request_struct = self.get_struct('Client' + request_type[4:].title() 
+                                     + 'Request')
     
     format = '>'
     for member in request_struct:
       if member.has_key('size'):
-        format += str(member['size']) + member['type']
+        if member['size'] == 'dlen':
+          format += str(len(request_raw) - format_length(format)) \
+                    + member['type']
+        else:
+          format += str(member['size']) + member['type']
       else: 
         format += member['type']
 

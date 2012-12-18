@@ -55,7 +55,6 @@ class LoginHelper:
     auth = AuthHelper.AuthHelper(self.context)
     sec = auth.get_sec_token()
                       
-    # sec = list('&P=' + self.context['sec.protocol'])
     params = {'streamid'  : streamid,
               'status'    : XProtocol.XResponseType.kXR_ok,
               'dlen'      : len(sec) + 16,
