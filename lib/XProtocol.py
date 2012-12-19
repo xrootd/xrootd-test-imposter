@@ -62,6 +62,7 @@ XReqErrorType = enum(
 # PROTOCOL DEFINITION: CLIENT'S REQUESTS TYPES
 #-------------------------------------------------------------------------------
 XRequestTypes = enum(
+   handshake    = 0,
    kXR_auth     = 3000,
    kXR_query    = 3001,
    kXR_chmod    = 3002,

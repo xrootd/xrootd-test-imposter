@@ -33,9 +33,10 @@ class AuthHelper:
     self.context = context
     self.mh = MessageHelper.MessageHelper(context)
 
-  def request(self, authparams):
+  def request(self, authparams, token=None):
     credname, credentials, credlen = \
-    self.getcredentials(authparams, 
+    self.getcredentials(authparams,
+                        token,
                         self.context['seclib'],
                         self.context['socket'].fileno())
     
@@ -46,7 +47,7 @@ class AuthHelper:
               'credtype'  : list(credname.ljust(4, '\0')),
               'dlen'      : credlen,
               'cred'      : credentials}
-    print 'cred:', credentials
+    
     return self.mh.build_message(request_struct, params)
   
   def response(self, streamid):
@@ -66,14 +67,14 @@ class AuthHelper:
   def request_format(self):
     return struct_format(self.mh.get_struct('ClientAuthRequest'))
   
-  def getcredentials(self, authparams, seclib, sockfd):
+  def getcredentials(self, authparams, token, seclib, sockfd):
     try:
-      credname, cred, credlen = get_credentials(authparams, seclib, sockfd)
-      credentials = cred.ljust(credlen, '\0')
+      credname, creds = get_credentials(authparams, token, seclib,
+                                        sockfd)
     except IOError, e:
       print "[!] Error getting credentials:", e
       sys.exit(1)
-    return credname, credentials, credlen
+    return credname, creds, len(creds)
   
   def get_sec_token(self):
     try:
@@ -87,7 +88,7 @@ class AuthHelper:
   
   def auth(self, creds):
     try:
-      authenticate(bytearray(creds), 
+      authenticate(bytearray(creds),
                    self.context['seclib'],
                    'sec.protocol ' + self.context['sec.protocol'] + '\n',
                    self.context['socket'].fileno())
@@ -107,7 +108,7 @@ class AuthHelper:
       else:
         format += member['type']
         
-    format += (str(len(request) - format_length(format))  + 's')
+    format += (str(len(request) - format_length(format)) + 's')
     return struct.unpack(format, request)
       
   def unpack_response(self, response):

@@ -54,23 +54,30 @@ class ClientRequestHelper:
     indicates that authentication is required, make an auth request."""
     login = LoginHelper.LoginHelper(self.context)
 
-    response_raw = self.mh.send_request(login.requestid, 
+    response_raw = self.mh.send_request(login.requestid,
                                         login.request(username, admin))
     response = login.unpack_response(response_raw)
     print 'login response:\t\t', response
     
     if response[1]['auth']:
-      self.auth(response[1]['message'])
+      self.auth(''.join(response[1]['message'][4:]))
       
-  def auth(self, response):
+  def auth(self, authparams, token=None):
     """Send/receive a kXR_auth request/response."""
     auth = AuthHelper.AuthHelper(self.context)
-    authparams = ''.join(response[4:])
-    
-    response_raw  = self.mh.send_request(auth.requestid, 
-                                         auth.request(authparams))
-    response      = auth.unpack_response(response_raw)
+
+    response_raw = self.mh.send_request(auth.requestid,
+                                         auth.request(authparams, token))
+    response = auth.unpack_response(response_raw)
     print 'auth response:\t\t', response
+
+    # Check if we need to authmore
+    if response[1][1] == XProtocol.XResponseType.kXR_authmore:
+      print "======> need to authmore"
+      token = response[1][-1]
+      self.auth(authparams, token)
+    elif response[1][1] == XProtocol.XResponseType.kXR_ok:
+      print "======> authenticated successfully"
     
   def protocol(self):
     """Send/receive a kXR_protocol request/response."""
@@ -79,7 +86,7 @@ class ClientRequestHelper:
     
     params = {'streamid'  : self.context['streamid'],
               'requestid' : self.mh.get_requestid(requestid),
-              'clientpv'  : XProtocol.XLoginVersion.kXR_ver003, 
+              'clientpv'  : XProtocol.XLoginVersion.kXR_ver003,
               'reserved'  : (12 * "\0"),
               'dlen'      : 0}
     
@@ -147,7 +154,7 @@ class ClientRequestHelper:
               'requestid' : self.mh.get_requestid(requestid),
               'options'   : '0',
               'reserved'  : (11 * "\0"),
-              'fhandle'   : (4  * "\0"),
+              'fhandle'   : (4 * "\0"),
               'dlen'      : len(path),
               'path'      : list(path)}
     

@@ -21,8 +21,8 @@ from lib.ClientRequestHelper import ClientRequestHelper
 class XRootDLogInClient:
   @classmethod
   def getDescription(cls):
-    return { 'type': 'Active', 'hostname': '192.168.56.101', 'port': 1094, 
-             'clients': 1, 'seclib': 'libXrdSec.dylib' }
+    return { 'type': 'Active', 'hostname': 'vagabond.cern.ch', 'port': 1094, 
+             'clients': 1, 'seclib': 'libXrdSec.so' }
 
   def __call__(self, context):
     

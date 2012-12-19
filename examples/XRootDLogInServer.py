@@ -22,8 +22,8 @@ class XRootDLogInServer:
   @classmethod
   def getDescription( cls ):
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
-             'seclib': 'libXrdSec.dylib', 
-             'sec.protocol': 'unix' }
+             'seclib': 'libXrdSec.so', 
+             'sec.protocol': 'gsi' }
 
   def __call__( self, context ):
     server = ServerResponseHelper(context)
@@ -32,6 +32,8 @@ class XRootDLogInServer:
     server.protocol()
     server.login()
     server.auth()
+    
+    
     server.stat()
     
     server.close()

@@ -50,6 +50,7 @@ class MessageHelper:
         format += member['type']
 
     message = tuple(flatten(message))
+    print self.get_requestid(message[1]), 'request:\t', message
     return struct.pack(format, *message)
     
   def send_request(self, requestid, request):
@@ -140,11 +141,18 @@ class MessageHelper:
   def get_requestid(self, requestid):
     """Return the integer request ID associated with the given string
     request ID.""" 
-    if hasattr(XProtocol.XRequestTypes, requestid):
-      return getattr(XProtocol.XRequestTypes, requestid)
-    else:
-      print "[!] Unknown request ID:", requestid
-      sys.exit(1)
+    try:
+      if hasattr(XProtocol.XRequestTypes, requestid):
+        return getattr(XProtocol.XRequestTypes, requestid)
+    except: pass
+    
+    try:
+      reqid = XProtocol.XRequestTypes.reverse_mapping[requestid]
+      return reqid
+    except: pass
+    
+    print "[!] Unknown request ID:", requestid
+    sys.exit(1)
       
   def get_responseid(self, responseid):
     """Return the string response ID associated with the given integer
