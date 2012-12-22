@@ -26,6 +26,8 @@ import HandshakeHelper
 import LoginHelper
 import AuthHelper
 
+from Utils import *
+
 
 class ClientRequestHelper:
   """Class to aid sending/receiving client xrootd messages."""
@@ -33,78 +35,107 @@ class ClientRequestHelper:
   def __init__(self, context):
     self.context = context    
     self.mh = MessageHelper.MessageHelper(context)
-    
-  def _do_request(self, requestid, request_struct, params):
-    """Build and send a request, then return an unpacked representation 
-    of the response to the given request."""
-    request = self.mh.build_message(request_struct, params) 
-    response_raw = self.mh.send_request(requestid, request)
-    return self.mh.unpack_response(response_raw, requestid)
   
-  def handshake(self):
-    """Perform initial handshake."""
-    handshake = HandshakeHelper.HandshakeHelper(self.context)
+  def send(self, request):
+    """Send a packed xrootd request."""
+    self.mh.send_message(request)
     
-    response_raw = self.mh.send_request('handshake', handshake.request)
-    response = handshake.unpack_response(response_raw)
-    print 'handshake response:\t', response
+  def receive(self):
+    """Receive a packed xrootd response."""
+    return self.mh.receive_response()
+  
+  def unpack(self, response_raw, request):
+    """Return an unpacked dict representation of a server response."""
+    return self.mh.unpack_response(response_raw, request)
     
-  def login(self, username, admin):
-    """Send/receive a kXR_login request/response. If the response 
-    indicates that authentication is required, make an auth request."""
-    login = LoginHelper.LoginHelper(self.context)
-
-    response_raw = self.mh.send_request(login.requestid,
-                                        login.request(username, admin))
-    response = login.unpack_response(response_raw)
-    print 'login response:\t\t', response
+  def do_full_handshake(self):
+    """Perform handshake/protocol/login/auth/authmore sequence with
+    default values."""
+    handshake_request = self.handshake()
+    self.send(handshake_request)
+    response_raw = self.receive()
+    status, response = self.unpack(response_raw, handshake_request)
+    print "kXR_handshake response:\t", status
     
-    if response[1]['auth']:
-      self.auth(''.join(response[1]['message'][4:]))
+    protocol_request = self.kXR_protocol()
+    self.send(protocol_request)
+    response_raw = self.receive()
+    status, response = self.unpack(response_raw, protocol_request)
+    print "kXR_protocol response:\t", status
+    
+    login_request = self.kXR_login(username="jsalmon")
+    self.send(login_request)
+    response_raw = self.receive()
+    status, response = self.unpack(response_raw, login_request)
+    print "kXR_login response:\t", status
+    
+    # Check if we need to auth
+    if len(response[4]):
+      auth_request = self.kXR_auth(authtoken=response[4])
+      self.send(auth_request)
+      response_raw = self.receive()
+      status, response = self.unpack(response_raw, auth_request)
+      print "kXR_auth response:\t", status
+    
+      # Check if we need to authmore
+      while response[1] == XProtocol.XResponseType.kXR_authmore:
+        print "More authentication needed, continuing"
+        auth_request = self.kXR_auth(contcred=response[-1])
+        self.send(auth_request)
+        response_raw = self.receive()
+        status, response = self.unpack(response_raw, auth_request)
+        print "kXR_auth response:\t", status
       
-  def auth(self, authparams, token=None):
-    """Send/receive a kXR_auth request/response."""
+    if get_responseid(status) == XProtocol.XResponseType.kXR_ok:
+      print "++++++ logged in successfully"
+    else:
+      print "++++++ login failed (%s): %s" % (status, response[-1]) 
+  
+  def handshake(self, **kwargs):
+    """Return a packed representation of a handshake request. The default 
+    request values can be individually modified by the optional keyword args."""
+    handshake = HandshakeHelper.HandshakeHelper(self.context)
+    return handshake.build_request(**kwargs)
+
+  def kXR_protocol(self, streamid=None, requestid=None, clientpv=None,
+                   reserved=None, dlen=None):
+    """Return a packed representation of a kXR_protocol request. The default 
+    request values can be individually modified by the optional keyword args."""
+    request_struct = get_struct('ClientProtocolRequest')
+    
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_protocol'),
+     'clientpv'  : clientpv   if clientpv   else XProtocol.XLoginVersion.kXR_ver003,
+     'reserved'  : reserved   if reserved   else (12 * "\0"),
+     'dlen'      : dlen       if dlen       else 0}
+    
+    return self.mh.build_message(request_struct, params)
+    
+  def kXR_login(self, **kwargs):
+    """Return a packed representation of a kXR_login request. The default 
+    request values can be individually modified by the optional keyword args."""
+    login = LoginHelper.LoginHelper(self.context)
+    return login.build_request(**kwargs)
+      
+  def kXR_auth(self, **kwargs):
+    """Return a packed representation of a kXR_auth request. The default 
+    request values can be individually modified by the optional keyword args."""
     auth = AuthHelper.AuthHelper(self.context)
-
-    response_raw = self.mh.send_request(auth.requestid,
-                                         auth.request(authparams, token))
-    response = auth.unpack_response(response_raw)
-    print 'auth response:\t\t', response
-
-    # Check if we need to authmore
-    if response[1][1] == XProtocol.XResponseType.kXR_authmore:
-      print "======> need to authmore"
-      token = response[1][-1]
-      self.auth(authparams, token)
-    elif response[1][1] == XProtocol.XResponseType.kXR_ok:
-      print "======> authenticated successfully"
+    return auth.build_request(**kwargs)
     
-  def protocol(self):
-    """Send/receive a kXR_protocol request/response."""
-    request_struct = self.mh.get_struct('ClientProtocolRequest')
-    requestid = 'kXR_protocol'
+  def kXR_ping(self, streamid=None, requestid=None, reserved=None, dlen=None):
+    """Return a packed representation of a kXR_ping request. The default 
+    request values can be individually modified by the optional keyword args."""
+    request_struct = get_struct('ClientPingRequest')
     
-    params = {'streamid'  : self.context['streamid'],
-              'requestid' : self.mh.get_requestid(requestid),
-              'clientpv'  : XProtocol.XLoginVersion.kXR_ver003,
-              'reserved'  : (12 * "\0"),
-              'dlen'      : 0}
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_ping'),
+     'reserved'  : reserved  if reserved   else (16 * "\0"),
+     'dlen'      : dlen      if dlen       else 0}
     
-    response = self._do_request(requestid, request_struct, params)
-    print 'protocol response:\t', response
-    
-  def ping(self):
-    """Send/receive a kXR_ping request/response."""
-    request_struct = self.mh.get_struct('ClientPingRequest')
-    requestid = 'kXR_ping'
-    
-    params = {'streamid'  : self.context['streamid'],
-              'requestid' : self.mh.get_requestid(requestid),
-              'reserved'  : (16 * "\0"),
-              'dlen'      : 0}
-    
-    response = self._do_request(requestid, request_struct, params)
-    print 'ping response:\t\t', response
+    return self.mh.build_message(request_struct, params)
     
   def kXR_query(self):
     pass
@@ -145,21 +176,24 @@ class ClientRequestHelper:
   def kXR_sync(self):
     pass
   
-  def stat(self, path):
-    """Send/receive a kXR_stat request/response."""
-    request_struct = self.mh.get_struct('ClientStatRequest')
-    requestid = 'kXR_stat'
+  def kXR_stat(self, streamid=None, requestid=None, options=None, reserved=None,
+               fhandle=None, dlen=None, path=None):
+    """Return a packed representation of a kXR_stat request. The default 
+    request values can be individually modified by the optional keyword args."""
+    request_struct = get_struct('ClientStatRequest')
     
-    params = {'streamid'  : self.context['streamid'],
-              'requestid' : self.mh.get_requestid(requestid),
-              'options'   : '0',
-              'reserved'  : (11 * "\0"),
-              'fhandle'   : (4 * "\0"),
-              'dlen'      : len(path),
-              'path'      : list(path)}
+    if not path: path = "/tmp"
     
-    response = self._do_request(requestid, request_struct, params)
-    print 'stat response:\t\t', response
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_stat'),
+     'options'   : options   if options    else '0',
+     'reserved'  : reserved  if reserved   else (11 * "\0"),
+     'fhandle'   : fhandle   if fhandle    else (4 * "\0"),
+     'dlen'      : dlen      if dlen       else len(path),
+     'path'      : path}
+    
+    return self.mh.build_message(request_struct, params)
   
   def kXR_set(self):
     pass

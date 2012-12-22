@@ -21,16 +21,32 @@ from lib.ClientRequestHelper import ClientRequestHelper
 class XRootDLogInClient:
   @classmethod
   def getDescription(cls):
-    return { 'type': 'Active', 'hostname': 'vagabond.cern.ch', 'port': 1094, 
+    return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 
              'clients': 1, 'seclib': 'libXrdSec.so' }
 
   def __call__(self, context):
-    
     client = ClientRequestHelper(context)
     
-    client.handshake()
-    client.protocol()
-    client.login(username='default', admin=False)
-    client.ping()
-    client.stat("/tmp")
+    client.do_full_handshake()
+    
+#     handshake_request = client.handshake(fifth=2013)
+#     client.send(handshake_request)
+#     response_raw = client.receive()
+#     response = client.unpack(response_raw, handshake_request)
+#     
+#     client.protocol()
+#     client.login(username='default', admin=False)
+#     client.ping()
+    
+
+    stat_request = client.kXR_stat(path="/tmp")
+    client.send(stat_request)
+    response_raw = client.receive()
+    status, response = client.unpack(response_raw, stat_request)
+    print "kXR_stat response:\t", status, response
+    
+    
+    
+    
+    
     

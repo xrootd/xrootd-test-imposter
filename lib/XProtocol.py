@@ -275,7 +275,7 @@ ClientAuthRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'credtype', 'type': 'c', 'size': 4},
+  {'name': 'credtype', 'type': 's', 'size': 4},
   {'name': 'dlen', 'type': 'l'},
   {'name': 'cred', 'type': 's', 'size': 'dlen'}
 ]
@@ -283,7 +283,7 @@ ClientAuthRequest = [
 ClientBindRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'sessid', 'type': 'c', 'size': 16},
+  {'name': 'sessid', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
@@ -298,7 +298,7 @@ ClientChmodRequest = [
 ClientCloseRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'fsize', 'type': 'q'},
   {'name': 'reserved', 'type': 's', 'size': 4},
   {'name': 'dlen', 'type': 'l'}
@@ -315,7 +315,7 @@ ClientDirlistRequest = [
 ClientEndsessRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'sessid', 'type': 'c', 'size': 16},
+  {'name': 'sessid', 'type': 's', 'size': 16},
   {'name': 'dlen', 'type': 'l'}
 ]
 
@@ -340,7 +340,7 @@ ClientLoginRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'pid', 'type': 'l'},
-  {'name': 'username', 'type': 'c', 'size': 8},
+  {'name': 'username', 'type': 's', 'size': 8},
   {'name': 'reserved', 'type': 's', 'size': 1},
   {'name': 'zone', 'type': 's', 'size': 1},
   {'name': 'capver', 'type': 'c', 'size': 1},
@@ -412,7 +412,7 @@ ClientQueryRequest = [
   {'name': 'requestid', 'type': 'H'},
   {'name': 'infotype', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 2},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'reserved', 'type': 's', 'size': 8},
   {'name': 'dlen', 'type': 'l'}
 ]
@@ -420,7 +420,7 @@ ClientQueryRequest = [
 ClientReadRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'offset', 'type': 'q'},
   {'name': 'rlen', 'type': 'l'},
   {'name': 'dlen', 'type': 'l'}
@@ -462,13 +462,13 @@ ClientStatRequest = [
   {'name': 'reserved', 'type': 's', 'size': 11},
   {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 'c', 'size': 'dlen'}
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientSyncRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'reserved', 'type': 's', 'size': 12},
   {'name': 'dlen', 'type': 'l'}
 ]
@@ -476,7 +476,7 @@ ClientSyncRequest = [
 ClientTruncateRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'offset', 'type': 'q'},
   {'name': 'reserved', 'type': 's', 'size': 4},
   {'name': 'dlen', 'type': 'l'}
@@ -485,7 +485,7 @@ ClientTruncateRequest = [
 ClientWriteRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'offset', 'type': 'q'},
   {'name': 'pathid', 'type': 'c'},
   {'name': 'reserved', 'type': 's', 'size': 3},
@@ -495,7 +495,7 @@ ClientWriteRequest = [
 ClientVerifywRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'offset', 'type': 'q'},
   {'name': 'pathid', 'type': 'c'},
   {'name': 'vertype', 'type': 'c'}, # One of XVerifyType
@@ -506,7 +506,7 @@ ClientVerifywRequest = [
 ClientRequestHdr = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'body', 'type': 'c', 'size': 16},
+  {'name': 'body', 'type': 's', 'size': 16},
   {'name': 'streamid', 'type': 'H'},
 ]
 
@@ -543,9 +543,9 @@ ServerResponseBody_Bind = [
 ]
 
 ServerResponseBody_Open = [
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'cpsize', 'type': 'l'}, # cpsize & cptype returned if kXR_compress *or*
-  {'name': 'cptype', 'type': 'c', 'size': 4}, # kXR_retstat is specified
+  {'name': 'cptype', 'type': 's', 'size': 4}, # kXR_retstat is specified
 ] # info will follow if kXR_retstat is specified
 
 ServerResponseBody_Protocol = [
@@ -555,22 +555,22 @@ ServerResponseBody_Protocol = [
 
 ServerResponseBody_Login = [
   {'name': 'sessid', 'type': 's', 'size': 16},
-  {'name': 'sec', 'type': 'c', 'size': 'dlen', 'offset': 16}
+  {'name': 'sec', 'type': 's', 'size': 'dlen', 'offset': 16}
 ]
 
 ServerResponseBody_Redirect = [
   {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 'c', 'size': 4096}
+  {'name': 'host', 'type': 's', 'size': 4096}
 ]
 
 ServerResponseBody_Error = [
   {'name': 'errnum', 'type': 'l'},
-  {'name': 'errmsg', 'type': 'c', 'size': 4096}
+  {'name': 'errmsg', 'type': 's', 'size': 'dlen', 'offset': 4}
 ]
 
 ServerResponseBody_Wait = [
   {'name': 'seconds', 'type': 'l'},
-  {'name': 'infomsg', 'type': 'c', 'size': 4096}
+  {'name': 'infomsg', 'type': 's', 'size': 4096}
 ]
 
 ServerResponseBody_Waitresp = [
@@ -579,20 +579,20 @@ ServerResponseBody_Waitresp = [
 
 ServerResponseBody_Attn = [
   {'name': 'actnum', 'type': 'l'},
-  {'name': 'parms', 'type': 'c', 'size': 4096}
+  {'name': 'parms', 'type': 's', 'size': 4096}
 ]
 
 ServerResponseBody_Attn_asyncrd = [
   {'name': 'actnum', 'type': 'l'},
   {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 'char', 'size': 4096}
+  {'name': 'host', 'type': 's', 'size': 4096}
 ]
 
 ServerResponseBody_Attn_asynresp = [
   {'name': 'actnum', 'type': 'l'},
-  {'name': 'reserved', 'type': 'char', 'size': 4},
+  {'name': 'reserved', 'type': 's', 'size': 4},
   {'name': 'resphdr', 'type': 'ServerResponseHeader'},
-  {'name': 'respdata', 'type': 'char', 'size': 4096}
+  {'name': 'respdata', 'type': 's', 'size': 4096}
 ]
 
 ServerResponseBody_Attn_asyncwt = [
@@ -607,7 +607,7 @@ ServerResponseBody_Attn_asyncdi = [
 ]
 
 ServerResponseBody_Authmore = [
-  {'name': 'data', 'type': 'char', 'size': 4096}
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
 ServerResponseBody_Buffer = [

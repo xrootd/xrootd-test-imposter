@@ -25,7 +25,7 @@ import XProtocol
 import MessageHelper
 
 from authbind import get_credentials, authenticate, get_parms
-from Utils import format_length, struct_format
+from Utils import *
 
 class AuthHelper:
   
@@ -33,25 +33,33 @@ class AuthHelper:
     self.context = context
     self.mh = MessageHelper.MessageHelper(context)
 
-  def request(self, authparams, token=None):
+  def build_request(self, authtoken=None, contcred=None, streamid=None, 
+                    requestid=None, reserved=None, credtype=None, dlen=None, 
+                    cred=None):
+    
+    if not authtoken and not contcred:
+      print "[!] Can't build kXR_auth request: no auth token or continuation \
+            credentials supplied"
+      sys.exit(1)
+      
     credname, credentials, credlen = \
-    self.getcredentials(authparams,
-                        token,
+    self.getcredentials(authtoken,
+                        contcred,
                         self.context['seclib'],
                         self.context['socket'].fileno())
     
-    request_struct = self.mh.get_struct('ClientAuthRequest')
-    params = {'streamid'  : self.context['streamid'],
-              'requestid' : self.requestid,
-              'reserved'  : 12 * '\0',
-              'credtype'  : list(credname.ljust(4, '\0')),
-              'dlen'      : credlen,
-              'cred'      : credentials}
+    request_struct = get_struct('ClientAuthRequest')
+    params = {'streamid'  : streamid  if streamid   else self.context['streamid'],
+              'requestid' : requestid if requestid  else self.requestid,
+              'reserved'  : reserved  if reserved   else 12 * '\0',
+              'credtype'  : credtype  if credtype   else credname.ljust(4, '\0'),
+              'dlen'      : dlen      if dlen       else credlen,
+              'cred'      : cred      if cred       else credentials}
     
     return self.mh.build_message(request_struct, params)
   
   def response(self, streamid):
-    response_struct = self.mh.get_struct('ServerResponseHeader')
+    response_struct = get_struct('ServerResponseHeader')
                       
     params = {'streamid'  : streamid,
               'status'    : XProtocol.XResponseType.kXR_ok,
@@ -65,12 +73,11 @@ class AuthHelper:
   
   @property
   def request_format(self):
-    return struct_format(self.mh.get_struct('ClientAuthRequest'))
+    return struct_format(get_struct('ClientAuthRequest'))
   
-  def getcredentials(self, authparams, token, seclib, sockfd):
+  def getcredentials(self, authtoken, contcred, seclib, sockfd):
     try:
-      credname, creds = get_credentials(authparams, token, seclib,
-                                        sockfd)
+      credname, creds = get_credentials(authtoken, contcred, seclib, sockfd)
     except IOError, e:
       print "[!] Error getting credentials:", e
       sys.exit(1)
@@ -97,7 +104,7 @@ class AuthHelper:
       sys.exit(1)
   
   def unpack_request(self, request):
-    request_struct = self.mh.get_struct('ClientAuthRequest')
+    request_struct = get_struct('ClientAuthRequest')
     format = '>'
     
     for member in request_struct:
@@ -112,7 +119,7 @@ class AuthHelper:
     return struct.unpack(format, request)
       
   def unpack_response(self, response):
-    response_struct = self.mh.get_struct('ServerResponseHeader')
+    response_struct = get_struct('ServerResponseHeader')
     format = '>'
     
     for member in response_struct:

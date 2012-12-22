@@ -16,8 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
+import sys
 import re
 import random
+
+import XProtocol
 
 def flatten(*args):
   """Return a flat list or tuple from a nested one."""
@@ -58,4 +61,40 @@ def struct_format(struct):
 
 def gen_sessid():
   return str(random.randrange(9999999999999999)).zfill(16)
+
+def get_struct(name):
+  """Return a representation of a struct as a list of dicts."""
+  if hasattr(XProtocol, name):
+    return getattr(XProtocol, name)
+  
+def get_requestid(requestid):
+  """Return the integer request ID associated with the given string
+  request ID.""" 
+  try:
+    if hasattr(XProtocol.XRequestTypes, requestid):
+      return getattr(XProtocol.XRequestTypes, requestid)
+  except: pass
+  
+  try:
+    return XProtocol.XRequestTypes.reverse_mapping[requestid]
+  except: pass
+  
+  print "[!] Unknown request ID:", requestid
+  sys.exit(1)
+  
+def get_responseid(responseid):
+  """Return the string response ID associated with the given integer
+  response ID."""
+  try:
+    if hasattr(XProtocol.XResponseType, responseid):
+      return getattr(XProtocol.XResponseType, responseid)
+  except: pass
+  
+  try:
+    return XProtocol.XResponseType.reverse_mapping[responseid]
+  except: pass
+  
+  print "[!] Unknown response ID:", responseid
+  sys.exit(1)
+
 

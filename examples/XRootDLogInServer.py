@@ -28,13 +28,17 @@ class XRootDLogInServer:
   def __call__( self, context ):
     server = ServerResponseHelper(context)
     
-    server.handshake()
-    server.protocol()
-    server.login()
-    server.auth()
+    server.do_full_handshake()
     
+    for request in iter(server.get_request()):
+      if request['type'] == 'stat':
+        response = server.stat(id=0, size=0, flags=0, modtime=0)
+        server.send(response)
     
-    server.stat()
+#     server.protocol()
+#     server.login()
+#     server.auth()
+#     server.stat()
     
     server.close()
     

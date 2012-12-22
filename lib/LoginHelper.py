@@ -22,7 +22,7 @@ import struct
 import XProtocol
 import MessageHelper
 import AuthHelper
-from Utils import flatten, format_length, struct_format, gen_sessid
+from Utils import *
 
 class LoginHelper:
   """Class to aid in performing an xrootd login sequence."""
@@ -31,25 +31,29 @@ class LoginHelper:
     self.context = context
     self.mh = MessageHelper.MessageHelper(context)
     
-  def request(self, username, admin):
-    request_struct = self.mh.get_struct('ClientLoginRequest')
+  def build_request(self, streamid=None, requestid=None, pid=None, username=None,
+                    reserved=None, zone=None, capver=None, role=None, dlen=None):
+    """Return a packed representation of a kXR_login request. The default 
+    request values can be individually modified by the optional keyword args."""
+    request_struct = get_struct('ClientLoginRequest')
     
-    params = {'streamid'  : self.context['streamid'],
-              'requestid' : self.requestid,
-              'pid'       : os.getpid(),
-              'username'  : list(username[:8].ljust(8, "\0")),
-              'reserved'  : '\0',
-              'zone'      : '\0',
-              'capver'    : chr(XProtocol.XLoginCapVer.kXR_asyncap \
-                                | XProtocol.XLoginVersion.kXR_ver003),
-              'role'      : '1' if admin else '0',
-              'dlen'      : 0}
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else self.requestid,
+     'pid'       : pid        if pid        else os.getpid(),
+     'username'  : username   if username   else ''.ljust(8, "\0"),
+     'reserved'  : reserved   if reserved   else '\0',
+     'zone'      : zone       if zone       else '\0',
+     'capver'    : capver     if capver     else chr(XProtocol.XLoginCapVer.kXR_asyncap \
+                                                     | XProtocol.XLoginVersion.kXR_ver003),
+     'role'      : role       if role       else '0',
+     'dlen'      : dlen       if dlen       else 0}
     
     return self.mh.build_message(request_struct, params)
   
   def response(self, streamid):
-    response_struct = self.mh.get_struct('ServerResponseHeader') + \
-                      self.mh.get_struct('ServerResponseBody_Login')
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Login')
                       
     # Check if client needs to authenticate
     auth = AuthHelper.AuthHelper(self.context)
@@ -59,7 +63,7 @@ class LoginHelper:
               'status'    : XProtocol.XResponseType.kXR_ok,
               'dlen'      : len(sec) + 16,
               'sessid'    : gen_sessid(),
-              'sec'       : list(sec)}
+              'sec'       : sec}
     
     return self.mh.build_message(response_struct, params)
   
@@ -69,10 +73,10 @@ class LoginHelper:
   
   @property
   def request_format(self):
-    return struct_format(self.mh.get_struct('ClientLoginRequest'))
+    return struct_format(get_struct('ClientLoginRequest'))
 
   def unpack_request(self, request):
-    request_struct = self.mh.get_struct('ClientLoginRequest')
+    request_struct = get_struct('ClientLoginRequest')
     format = '>'
     
     for member in request_struct:
@@ -81,8 +85,8 @@ class LoginHelper:
     return struct.unpack(format, request)
     
   def unpack_response(self, response):
-    response_struct = self.mh.get_struct('ServerResponseHeader') \
-                    + self.mh.get_struct('ServerResponseBody_Login')
+    response_struct = get_struct('ServerResponseHeader') \
+                    + get_struct('ServerResponseBody_Login')
     format = '>'
     
     for member in response_struct:
@@ -97,7 +101,7 @@ class LoginHelper:
       # Authentication needed
       auth = True
       response = struct.unpack(format + 
-                               (str(len(response) - format_length(format)) + 's'), 
+                               (str(len(response) - format_length(format)) + 's'),
                                response)
     else:
       # Authentication not needed

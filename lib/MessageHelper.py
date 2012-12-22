@@ -3,21 +3,7 @@ import struct
 import socket
 
 import XProtocol
-from Utils import flatten, format_length
-
-class MessageHelperException(Exception):
-  """General Exception raised by MessageHelper."""
-    
-  def __init__(self, desc):
-    """Construct an exception.
-
-    @param desc: description of an error
-    """
-    self.desc = desc
-
-  def __str__(self):
-    """Return textual representation of an error."""
-    return str(self.desc)
+from Utils import *
 
 
 class MessageHelper:
@@ -50,28 +36,14 @@ class MessageHelper:
         format += member['type']
 
     message = tuple(flatten(message))
-    print self.get_requestid(message[1]), 'request:\t', message
     return struct.pack(format, *message)
     
-  def send_request(self, requestid, request):
-    """Send a packed request and return a packed response."""
+  def send_message(self, message):
+    """Send a packed binary message."""
     try:
-      self.sock.send(request)
+      self.sock.send(message)
     except socket.error, e:
-      print 'Error sending %s request: %s' % (requestid, e)
-      sys.exit(1)
-    try:  
-      response = self.sock.recv(4096)
-    except socket.error, e:
-      print 'Error receiving %s response: %s' % (requestid, e)
-      sys.exit(1)
-    return response    
-  
-  def send_response(self, response):
-    try:
-      self.sock.send(response)
-    except socket.error, e:
-      print 'Error sending response: %s' % e
+      print 'Error sending message: %s' % e
       sys.exit(1)
   
   def receive_request(self, format):
@@ -83,31 +55,62 @@ class MessageHelper:
       
     return request
   
-  def unpack_response(self, response, requestid):
-    """Return an unpacked tuple representation of a server response."""
-    header_struct = self.get_struct('ServerResponseHeader')
-    format = '>'
+  def receive_response(self):
+    try:  
+      response = self.sock.recv(4096)
+    except socket.error, e:
+      print 'Error receiving %s response: %s' % (requestid, e)
+      sys.exit(1)
+    return response   
+  
+  def unpack_response(self, response_raw, request_raw):
+    """Return an unpacked dict representation of a server response."""    
+    request = self.unpack_request(request_raw)
+    requestid = get_requestid(request[1])
     
+    header_struct = get_struct('ServerResponseHeader')
+    format = '>'
+     
     for member in header_struct:
       format += member['type']
     
-    dlen = struct.unpack(format + ('s' * (len(response) - 8))
-                                      , response)[2]
-    
-    body_struct = self.get_struct('ServerResponseBody_' + requestid[4:].title())
+    header = struct.unpack(format + (str(len(response_raw) - 8) + 's'), 
+                           response_raw)
+    streamid = header[0]
+    status = header[1]
+    dlen = header[2]
+
+    # Check if this is a handshake response
+    if request[1] == XProtocol.XRequestTypes.handshake:
+      body_struct = get_struct('ServerInitHandShake')
+    # Check if this is amore than a simple kXR_ok response
+    elif status != XProtocol.XResponseType.kXR_ok:
+      body_struct = get_struct('ServerResponseBody_' \
+                               + get_responseid(status)[4:].title())
+    else:
+      body_struct = get_struct('ServerResponseBody_' \
+                               + requestid[4:].title())
+
     if not body_struct: body_struct = list()
-    
+     
     for member in body_struct:
       if member.has_key('size'):
-        format += str(member['size']) + member['type']
+        if member['size'] == 'dlen':
+          if member.has_key('offset'):
+            format += str(dlen - member['offset']) \
+                      + member['type']
+          else:       
+            format += str(dlen) + member['type']
+        else:
+          format += str(member['size']) + member['type']
       else: 
         format += member['type']
-        
-    if not body_struct:
+         
+    if len(body_struct) == 0:
       format += (str(dlen) + 's')
-    
-    response = struct.unpack(format, response)
-    return self.get_responseid(response[1]), response
+         
+    response = struct.unpack(format, response_raw)
+    return get_responseid(response[1]), response
   
   def unpack_request(self, request_raw):
     format = '>HHl'
@@ -116,8 +119,12 @@ class MessageHelper:
                                    - format_length(format)) + 's'),
                                    request_raw)
     
-    request_type = XProtocol.XRequestTypes.reverse_mapping[request_header[1]]
-    request_struct = self.get_struct('Client' + request_type[4:].title() 
+    # Check if this is a handshake request
+    if request_header[1] == XProtocol.XRequestTypes.handshake:
+      request_struct = get_struct('ClientInitHandShake')
+    else:
+      request_type = XProtocol.XRequestTypes.reverse_mapping[request_header[1]]
+      request_struct = get_struct('Client' + request_type[4:].title() 
                                      + 'Request')
     
     format = '>'
@@ -132,35 +139,4 @@ class MessageHelper:
         format += member['type']
 
     return struct.unpack(format, request_raw)
-  
-  def get_struct(self, name):
-    """Return a representation of a struct as a list of dicts."""
-    if hasattr(XProtocol, name):
-        return getattr(XProtocol, name)
-    
-  def get_requestid(self, requestid):
-    """Return the integer request ID associated with the given string
-    request ID.""" 
-    try:
-      if hasattr(XProtocol.XRequestTypes, requestid):
-        return getattr(XProtocol.XRequestTypes, requestid)
-    except: pass
-    
-    try:
-      reqid = XProtocol.XRequestTypes.reverse_mapping[requestid]
-      return reqid
-    except: pass
-    
-    print "[!] Unknown request ID:", requestid
-    sys.exit(1)
       
-  def get_responseid(self, responseid):
-    """Return the string response ID associated with the given integer
-    response ID."""
-    try:
-      respid = XProtocol.XResponseType.reverse_mapping[responseid]
-    except KeyError, e:
-      print "[!] Unknown response ID:", responseid
-      sys.exit(1) 
-      
-    return respid

@@ -19,7 +19,7 @@
 import struct
 import MessageHelper
 
-from Utils import struct_format
+from Utils import *
 
 
 class HandshakeHelper:
@@ -28,23 +28,23 @@ class HandshakeHelper:
   def __init__(self, context):
     self.mh = MessageHelper.MessageHelper(context)
     
-  @property
-  def request(self):
+  def build_request(self, first=None, second=None, third=None, fourth=None, 
+                    fifth=None):
     """Return a packed representation of a client handshake request."""
-    request_struct = self.mh.get_struct('ClientInitHandShake')    
-    params = {'first'   : 0,
-              'second'  : 0, 
-              'third'   : 0,
-              'fourth'  : 4,
-              'fifth'   : 2012}
+    request_struct = get_struct('ClientInitHandShake')    
+    params = {'first'   : first   if first  else 0,
+              'second'  : second  if second else 0, 
+              'third'   : third   if third  else 0,
+              'fourth'  : fourth  if fourth else 4,
+              'fifth'   : fifth   if fifth  else 2012}
     
     return self.mh.build_message(request_struct, params)
   
   @property
   def response(self):
     """Return a packed representation of a server handshake response."""
-    response_struct = self.mh.get_struct('ServerResponseHeader') \
-                    + self.mh.get_struct('ServerInitHandShake')
+    response_struct = get_struct('ServerResponseHeader') \
+                    + get_struct('ServerInitHandShake')
     params = {'streamid'  : 0,
               'status'    : 0,
               'dlen'      : 8,
@@ -55,12 +55,12 @@ class HandshakeHelper:
   
   @property
   def request_format(self):
-    return struct_format(self.mh.get_struct('ClientInitHandShake'))
+    return struct_format(get_struct('ClientInitHandShake'))
   
   def unpack_request(self, request):
     """Return an unpacked tuple representation of a client handshake
     request."""
-    request_struct = self.mh.get_struct('ClientInitHandShake')
+    request_struct = get_struct('ClientInitHandShake')
     format = '>'
     
     for member in request_struct:
@@ -71,8 +71,8 @@ class HandshakeHelper:
   def unpack_response(self, response):
     """Return an unpacked tuple representation of a server handshake 
     response."""
-    response_struct = self.mh.get_struct('ServerResponseHeader') \
-                    + self.mh.get_struct('ServerInitHandShake')
+    response_struct = get_struct('ServerResponseHeader') \
+                    + get_struct('ServerInitHandShake')
     format = '>'
     
     for member in response_struct:

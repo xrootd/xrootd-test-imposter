@@ -241,42 +241,55 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 
     int sock;
     struct sockaddr_in *sockadd;
-    const char* authBuffer;
+    const char* authToken;
+    int authTokenLen;
     const char* authLibName;
     stringstream err;
 
-    const char *authMoreToken;
-    int authTokenLen;
+    const char *contCred;
+    int contCredLen;
 
     XrdSecCredentials *credentials = 0;
     XrdSecParameters *authParams;
     XrdOucEnv *authEnv;
 
     // Parse the python parameters
-    if (!PyArg_ParseTuple(args, "sz#si", &authBuffer, &authMoreToken,
-            &authTokenLen, &authLibName, &sock))
+    if (!PyArg_ParseTuple(args, "z#z#si", &authToken, &authTokenLen, &contCred,
+            &contCredLen, &authLibName, &sock))
         return NULL;
+
+    // Prepare some variables
+    authEnv = new XrdOucEnv();
+    authEnv->Put("sockname", "");
+    XrdOucErrInfo ei("", authEnv);
+
+    if (authToken != NULL) {
+        authParams = new XrdSecParameters((char*) authToken, authTokenLen);
+
+    }
 
     // Create a sockaddr_in from the socket descriptor given
     socklen_t socklen = sizeof(struct sockaddr_in);
     sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
     getsockname(sock, (sockaddr*) sockadd, &socklen);
 
-    // Prepare some variables
-    authEnv = new XrdOucEnv();
-    authEnv->Put("sockname", "");
-    XrdOucErrInfo ei("", authEnv);
-    size_t authBuffLen = strlen(authBuffer);
-    authParams = new XrdSecParameters((char*) authBuffer, authBuffLen);
-
     // Set some environment vars
     setenv("XRDINSTANCE", "imposter", 1);
     setenv("XrdSecDEBUG", "1", 1);
 
-    if (authProtocol && (authMoreToken != NULL)) {
-        XrdSecParameters *secToken = new XrdSecParameters((char*) authMoreToken,
-                authTokenLen);
+    // Check if this is an authmore call, i.e. we have continuation credentials
+    if (authProtocol && (contCred != NULL)) {
+        XrdSecParameters *secToken = new XrdSecParameters((char*) contCred,
+                contCredLen);
+
         credentials = authProtocol->getCredentials(secToken, &ei);
+        if (!credentials) {
+            err << "Unable to get continuation credentials: " << ei.getErrText()
+                    << endl;
+            PyErr_SetString(PyExc_IOError, err.str().c_str());
+            return NULL;
+        }
+
         return Py_BuildValue("ss#", protocolName.c_str(), credentials->buffer,
                 credentials->size);
     }
@@ -323,7 +336,8 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
         }
 
         protocolName = authProtocol->Entity.prot;
-        cout << "trying to authenticate using " << protocolName.c_str() << endl;
+        cout << "Trying to get credentials for protocol: "
+                << protocolName.c_str() << endl;
 
         //----------------------------------------------------------------------
         // Get the credentials from the current protocol
@@ -337,6 +351,9 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
         } else
             break;
     }
+
+    cout << "Successfully got credentials for protocol: "
+            << protocolName.c_str() << endl;
 
     return Py_BuildValue("ss#", protocolName.c_str(), credentials->buffer,
             credentials->size);

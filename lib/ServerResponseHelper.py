@@ -25,7 +25,7 @@ import MessageHelper
 import LoginHelper
 import AuthHelper
 
-from Utils import format_length, struct_format
+from Utils import *
       
 class ServerResponseHelper:
   
@@ -44,13 +44,13 @@ class ServerResponseHelper:
     
   def protocol(self):
     """Receive a kXR_protocol request and send the response."""
-    request_struct = self.mh.get_struct('ClientProtocolRequest')
+    request_struct = get_struct('ClientProtocolRequest')
     request_raw = self.mh.receive_request(struct_format(request_struct))
     request = self.mh.unpack_request(request_raw)
     print 'protocol request:\t', request
     
-    response_struct = self.mh.get_struct('ServerResponseHeader') + \
-                      self.mh.get_struct('ServerResponseBody_Protocol')
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Protocol')
     params = {'streamid': request[0],
               'status'  : XProtocol.XResponseType.kXR_ok,
               'dlen'    : 8,
@@ -80,13 +80,13 @@ class ServerResponseHelper:
   
   def stat(self):
     """Receive a kXR_stat request and send the response."""
-    request_struct = self.mh.get_struct('ClientStatRequest')
+    request_struct = get_struct('ClientStatRequest')
     request_raw = self.mh.receive_request(struct_format(request_struct))
     request = self.mh.unpack_request(request_raw)
     print 'stat request:\t', request
     
-    response_struct = self.mh.get_struct('ServerResponseHeader') + \
-                      self.mh.get_struct('ServerResponseBody_Buffer')
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Buffer')
                       
     info = '35235911761153 4096 51 1355867406'
     
