@@ -26,76 +26,93 @@ import LoginHelper
 import AuthHelper
 
 from Utils import *
+
       
 class ServerResponseHelper:
   
   def __init__(self, context):
     self.context = context    
     self.mh = MessageHelper.MessageHelper(context)
+    
+  def do_full_handshake(self):
+    """"""
+    for request in self.receive():
+      if request['type'] == 'kXR_protocol':
+        print 'hs + proto request:\t', request
+        self.send(self.handshake() 
+                  + self.protocol(streamid=request['streamid']))
+      
+      elif request['type'] == 'kXR_login':
+        print 'login request:\t\t', request
+        self.send(self.login(streamid=request['streamid']))
+        
+      elif request['type'] == 'kXR_auth':
+        print 'auth request:\t\t', request
+        self.send(self.auth(streamid=request['streamid']))
+        break
+    
   
-  def handshake(self):
-    """Receive an initial handshake request and send the response."""
+  def send(self, response):
+    """Send a packed xrootd response."""
+    self.mh.send_message(response)
+  
+  def receive(self):
+    """"""
+    while True:
+      request = self.unpack(self.mh.receive_message())
+      if request:
+        yield request
+    
+  def unpack(self, request_raw):
+    """"""
+    return self.mh.unpack_request(request_raw)
+  
+  def handshake(self, **kwargs):
+    """"""
     handshake = HandshakeHelper.HandshakeHelper(self.context)
+    return handshake.build_response(**kwargs)
     
-    request_raw = self.mh.receive_request(handshake.request_format)
-    request = handshake.unpack_request(request_raw)
-    print 'handshake request:\t', request
-    self.mh.send_response(handshake.response)
-    
-  def protocol(self):
-    """Receive a kXR_protocol request and send the response."""
-    request_struct = get_struct('ClientProtocolRequest')
-    request_raw = self.mh.receive_request(struct_format(request_struct))
-    request = self.mh.unpack_request(request_raw)
-    print 'protocol request:\t', request
-    
+  def protocol(self, streamid=None, status=None, dlen=None, pval=None, 
+               flags=None):
+    """"""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Protocol')
-    params = {'streamid': request[0],
-              'status'  : XProtocol.XResponseType.kXR_ok,
-              'dlen'    : 8,
-              'pval'    : XProtocol.kXR_PROTOCOLVERSION,
-              'flags'   : XProtocol.kXR_isServer}
+    params = {'streamid': streamid  if streamid else 0,
+              'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+              'dlen'    : dlen      if dlen     else 8,
+              'pval'    : pval      if pval     else XProtocol.kXR_PROTOCOLVERSION,
+              'flags'   : flags     if flags    else XProtocol.kXR_isServer}
     
-    self.mh.send_response(self.mh.build_message(response_struct, params))
+    return self.mh.build_message(response_struct, params)
     
-  def login(self):
-    """Receive a kXR_login request and send the response."""
+  def login(self, **kwargs):
+    """"""
     login = LoginHelper.LoginHelper(self.context)
+    return login.build_response(**kwargs)
   
-    request_raw = self.mh.receive_request(login.request_format)
-    request = self.mh.unpack_request(request_raw)
-    print 'login request:\t\t', request
-    self.mh.send_response(login.response(request[0]))
-  
-  def auth(self):
-    """Receive a kXR_auth request and send the response."""
+  def auth(self, **kwargs):
+    """"""
     auth = AuthHelper.AuthHelper(self.context)
-    
-    request_raw = self.mh.receive_request(auth.request_format)
-    request = auth.unpack_request(request_raw)
-    print 'auth request:\t\t', request
-    auth.auth(request[-1])
-    self.mh.send_response(auth.response(request[0]))
+    return auth.build_response(**kwargs)
   
-  def stat(self):
-    """Receive a kXR_stat request and send the response."""
-    request_struct = get_struct('ClientStatRequest')
-    request_raw = self.mh.receive_request(struct_format(request_struct))
-    request = self.mh.unpack_request(request_raw)
-    print 'stat request:\t', request
-    
+  def stat(self, streamid=None, status=None, dlen=None, data=None, id=None,
+           size=None, flags=None, modtime=None):
+    """"""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Buffer')
                       
-    info = '35235911761153 4096 51 1355867406'
+    if data:
+      pass
+    else:
+      data = (x for x in (id, size, flags, modtime) if x is not None)
+      data = ' '.join([str(param) for param in data])
     
-    params = {'streamid': request[0],
-              'status'  : XProtocol.XResponseType.kXR_ok,
-              'dlen'    : len(info),
-              'data'    : info}
+    params = {'streamid': streamid  if streamid else 0,
+              'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+              'dlen'    : dlen      if dlen     else len(data),
+              'data'    : data}
     
-    self.mh.send_response(self.mh.build_message(response_struct, params))
+    return self.mh.build_message(response_struct, params)
     
   def close(self):
     self.context['socket'].close()

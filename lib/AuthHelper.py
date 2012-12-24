@@ -58,12 +58,12 @@ class AuthHelper:
     
     return self.mh.build_message(request_struct, params)
   
-  def response(self, streamid):
+  def build_response(self, streamid=None, status=None, dlen=None):
     response_struct = get_struct('ServerResponseHeader')
                       
-    params = {'streamid'  : streamid,
-              'status'    : XProtocol.XResponseType.kXR_ok,
-              'dlen'      : 0}
+    params = {'streamid'  : streamid  if streamid   else 0,
+              'status'    : status    if status     else XProtocol.XResponseType.kXR_ok,
+              'dlen'      : dlen      if dlen       else 0}
     
     return self.mh.build_message(response_struct, params)
   
@@ -102,31 +102,3 @@ class AuthHelper:
     except IOError, e:
       print "[!] Error authenticating:", e
       sys.exit(1)
-  
-  def unpack_request(self, request):
-    request_struct = get_struct('ClientAuthRequest')
-    format = '>'
-    
-    for member in request_struct:
-      if member['name'] == 'cred':
-        continue
-      if member.has_key('size'):
-        format += (str(member['size']) + member['type'])
-      else:
-        format += member['type']
-        
-    format += (str(len(request) - format_length(format)) + 's')
-    return struct.unpack(format, request)
-      
-  def unpack_response(self, response):
-    response_struct = get_struct('ServerResponseHeader')
-    format = '>'
-    
-    for member in response_struct:
-      format += member['type']
-    
-    if len(response) > format_length(format):
-      format += (str(len(response) - format_length(format)) + 's')
-      
-    response = struct.unpack(format, response)
-    return self.mh.get_responseid(response[1]), response

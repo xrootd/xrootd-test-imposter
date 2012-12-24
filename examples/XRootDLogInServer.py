@@ -22,23 +22,19 @@ class XRootDLogInServer:
   @classmethod
   def getDescription( cls ):
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
-             'seclib': 'libXrdSec.so', 
-             'sec.protocol': 'gsi' }
+             'seclib': 'libXrdSec.dylib', 'sec.protocol': 'unix' }
 
   def __call__( self, context ):
     server = ServerResponseHelper(context)
-    
     server.do_full_handshake()
     
-    for request in iter(server.get_request()):
-      if request['type'] == 'stat':
+    for request in server.receive():
+      
+      if request['type'] == 'kXR_stat':
+        print 'stat request:\t\t', request
         response = server.stat(id=0, size=0, flags=0, modtime=0)
         server.send(response)
-    
-#     server.protocol()
-#     server.login()
-#     server.auth()
-#     server.stat()
+        
     
     server.close()
     

@@ -40,44 +40,20 @@ class HandshakeHelper:
     
     return self.mh.build_message(request_struct, params)
   
-  @property
-  def response(self):
+  def build_response(self, streamid=None, status=None, dlen=None, protover=None,
+               msgval=None):
     """Return a packed representation of a server handshake response."""
     response_struct = get_struct('ServerResponseHeader') \
                     + get_struct('ServerInitHandShake')
-    params = {'streamid'  : 0,
-              'status'    : 0,
-              'dlen'      : 8,
-              'protover'  : 663,
-              'msgval'    : 1}
+    params = {'streamid'  : streamid  if streamid else 0,
+              'status'    : status    if status   else 0,
+              'dlen'      : dlen      if dlen     else 8,
+              'protover'  : protover  if protover else 663,
+              'msgval'    : msgval    if msgval   else 1}
     
     return self.mh.build_message(response_struct, params)
   
   @property
   def request_format(self):
     return struct_format(get_struct('ClientInitHandShake'))
-  
-  def unpack_request(self, request):
-    """Return an unpacked tuple representation of a client handshake
-    request."""
-    request_struct = get_struct('ClientInitHandShake')
-    format = '>'
-    
-    for member in request_struct:
-      format += member['type']
-      
-    return struct.unpack(format, request)
-  
-  def unpack_response(self, response):
-    """Return an unpacked tuple representation of a server handshake 
-    response."""
-    response_struct = get_struct('ServerResponseHeader') \
-                    + get_struct('ServerInitHandShake')
-    format = '>'
-    
-    for member in response_struct:
-      format += member['type']
-      
-    response = struct.unpack(format, response)
-    return self.mh.get_responseid(response[1]), response
   

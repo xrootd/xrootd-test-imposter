@@ -46,22 +46,13 @@ class MessageHelper:
       print 'Error sending message: %s' % e
       sys.exit(1)
   
-  def receive_request(self, format):
-    try:
-      request = self.sock.recv(format_length(format))
-    except socket.error, e:
-      print 'Error receiving request: %s' % e
-      sys.exit(1)
-      
-    return request
-  
-  def receive_response(self):
+  def receive_message(self):
     try:  
-      response = self.sock.recv(4096)
+      message = self.sock.recv(4096)
     except socket.error, e:
-      print 'Error receiving %s response: %s' % (requestid, e)
+      print 'Error receiving message: %s' % e
       sys.exit(1)
-    return response   
+    return message   
   
   def unpack_response(self, response_raw, request_raw):
     """Return an unpacked dict representation of a server response."""    
@@ -113,19 +104,32 @@ class MessageHelper:
     return get_responseid(response[1]), response
   
   def unpack_request(self, request_raw):
-    format = '>HHl'
-    request_header = struct.unpack(format
-                                   + (str(len(request_raw) 
-                                   - format_length(format)) + 's'),
-                                   request_raw)
+    """"""
+    if not len(request_raw): return
+    
+    format = '>HH' + (str(len(request_raw) - 4) + 's')
+    header = struct.unpack(format, request_raw)
+    
+    streamid = header[0]
+    requestid = header[1]
     
     # Check if this is a handshake request
-    if request_header[1] == XProtocol.XRequestTypes.handshake:
+    if requestid == XProtocol.XRequestTypes.handshake:
       request_struct = get_struct('ClientInitHandShake')
     else:
-      request_type = XProtocol.XRequestTypes.reverse_mapping[request_header[1]]
+      request_type = XProtocol.XRequestTypes.reverse_mapping[requestid]
       request_struct = get_struct('Client' + request_type[4:].title() 
                                      + 'Request')
+      
+    # Check if another request is being piggybacked
+    if len(request_raw) > format_length(struct_format(request_struct)):
+      format = struct_format(request_struct) + 'HH'
+      requestid_2 = struct.unpack(format + str(len(request_raw) 
+                                               - format_length(format)) + 's', 
+                                  request_raw)[-2]
+      request_type_2 = XProtocol.XRequestTypes.reverse_mapping[requestid_2]
+      request_struct += get_struct('Client' + request_type_2[4:].title()  
+                                   + 'Request')
     
     format = '>'
     for member in request_struct:
@@ -137,6 +141,19 @@ class MessageHelper:
           format += str(member['size']) + member['type']
       else: 
         format += member['type']
-
-    return struct.unpack(format, request_raw)
+        
+    request_tuple = struct.unpack(format, request_raw)
+    
+    # Convert back to dict
+    request_dict = dict()
+    
+    for i, param in enumerate(request_tuple):
+      request_dict.update({request_struct[i]['name']: param})
+    
+    # Insert request type
+    request_dict.update({'type': get_requestid(request_dict['requestid'])})
+    
+    return request_dict
+    
+    
       

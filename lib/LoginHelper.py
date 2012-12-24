@@ -51,19 +51,22 @@ class LoginHelper:
     
     return self.mh.build_message(request_struct, params)
   
-  def response(self, streamid):
+  def build_response(self, streamid=None, status=None, dlen=None, sessid=None,
+                     sec=None):
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Login')
                       
     # Check if client needs to authenticate
-    auth = AuthHelper.AuthHelper(self.context)
-    sec = auth.get_sec_token()
+    auth = AuthHelper.AuthHelper(self.context) 
+    if not sec:
+      sec = auth.get_sec_token()
                       
-    params = {'streamid'  : streamid,
-              'status'    : XProtocol.XResponseType.kXR_ok,
-              'dlen'      : len(sec) + 16,
-              'sessid'    : gen_sessid(),
-              'sec'       : sec}
+    params = \
+    {'streamid'  : streamid   if streamid   else 0,
+     'status'    : status     if status     else XProtocol.XResponseType.kXR_ok,
+     'dlen'      : dlen       if dlen       else len(sec) + 16,
+     'sessid'    : sessid     if sessid     else gen_sessid(),
+     'sec'       : sec}
     
     return self.mh.build_message(response_struct, params)
   
@@ -75,38 +78,3 @@ class LoginHelper:
   def request_format(self):
     return struct_format(get_struct('ClientLoginRequest'))
 
-  def unpack_request(self, request):
-    request_struct = get_struct('ClientLoginRequest')
-    format = '>'
-    
-    for member in request_struct:
-      format += member['type']
-      
-    return struct.unpack(format, request)
-    
-  def unpack_response(self, response):
-    response_struct = get_struct('ServerResponseHeader') \
-                    + get_struct('ServerResponseBody_Login')
-    format = '>'
-    
-    for member in response_struct:
-      if member['name'] == 'sec': continue
-      
-      if member.has_key('size'):
-        format += str(member['size']) + member['type']
-      else: 
-        format += member['type']
-    
-    if len(response) > 24:
-      # Authentication needed
-      auth = True
-      response = struct.unpack(format + 
-                               (str(len(response) - format_length(format)) + 's'),
-                               response)
-    else:
-      # Authentication not needed
-      auth = False
-      response = struct.unpack(format, response)
-
-    return self.mh.get_responseid(response[1]), \
-           {'message': response, 'auth': auth}
