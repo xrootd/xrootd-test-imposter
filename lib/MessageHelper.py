@@ -57,7 +57,7 @@ class MessageHelper:
   def unpack_response(self, response_raw, request_raw):
     """Return an unpacked dict representation of a server response."""    
     request = self.unpack_request(request_raw)
-    requestid = get_requestid(request[1])
+    requestid = get_requestid(request['type'])
     
     header_struct = get_struct('ServerResponseHeader')
     format = '>'
@@ -67,24 +67,28 @@ class MessageHelper:
     
     header = struct.unpack(format + (str(len(response_raw) - 8) + 's'), 
                            response_raw)
+    
     streamid = header[0]
     status = header[1]
     dlen = header[2]
 
     # Check if this is a handshake response
-    if request[1] == XProtocol.XRequestTypes.handshake:
+    if requestid == XProtocol.XRequestTypes.handshake:
       body_struct = get_struct('ServerInitHandShake')
-    # Check if this is amore than a simple kXR_ok response
+    # Check if this is more than a simple kXR_ok response
     elif status != XProtocol.XResponseType.kXR_ok:
       body_struct = get_struct('ServerResponseBody_' \
                                + get_responseid(status)[4:].title())
     else:
       body_struct = get_struct('ServerResponseBody_' \
-                               + requestid[4:].title())
+                               + request['type'][4:].title())
 
     if not body_struct: body_struct = list()
-     
-    for member in body_struct:
+    
+    format = '>'
+    response_struct = header_struct + body_struct
+    
+    for member in response_struct:
       if member.has_key('size'):
         if member['size'] == 'dlen':
           if member.has_key('offset'):
@@ -100,8 +104,14 @@ class MessageHelper:
     if len(body_struct) == 0:
       format += (str(dlen) + 's')
          
-    response = struct.unpack(format, response_raw)
-    return get_responseid(response[1]), response
+    response_tuple = struct.unpack(format, response_raw)  
+    # Convert back to dict
+    response_dict = dict()
+    
+    for i, param in enumerate(response_tuple):
+      response_dict.update({response_struct[i]['name']: param})
+    
+    return response_dict
   
   def unpack_request(self, request_raw):
     """"""
@@ -151,7 +161,10 @@ class MessageHelper:
       request_dict.update({request_struct[i]['name']: param})
     
     # Insert request type
-    request_dict.update({'type': get_requestid(request_dict['requestid'])})
+    if request_dict.has_key('second'): 
+      request_dict.update({'type': get_requestid(request_dict['second'])})
+    else:
+      request_dict.update({'type': get_requestid(request_dict['requestid'])})
     
     return request_dict
     

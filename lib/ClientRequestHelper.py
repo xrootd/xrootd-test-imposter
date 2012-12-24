@@ -42,7 +42,7 @@ class ClientRequestHelper:
     
   def receive(self):
     """Receive a packed xrootd response."""
-    return self.mh.receive_response()
+    return self.mh.receive_message()
   
   def unpack(self, response_raw, request):
     """Return an unpacked dict representation of a server response."""
@@ -54,42 +54,43 @@ class ClientRequestHelper:
     handshake_request = self.handshake()
     self.send(handshake_request)
     response_raw = self.receive()
-    status, response = self.unpack(response_raw, handshake_request)
-    print "kXR_handshake response:\t", status
+    response = self.unpack(response_raw, handshake_request)
+    print "kXR_handshake response:\t", response
     
     protocol_request = self.kXR_protocol()
     self.send(protocol_request)
     response_raw = self.receive()
-    status, response = self.unpack(response_raw, protocol_request)
-    print "kXR_protocol response:\t", status
+    response = self.unpack(response_raw, protocol_request)
+    print "kXR_protocol response:\t", response
     
     login_request = self.kXR_login(username="jsalmon")
     self.send(login_request)
     response_raw = self.receive()
-    status, response = self.unpack(response_raw, login_request)
-    print "kXR_login response:\t", status
+    response = self.unpack(response_raw, login_request)
+    print "kXR_login response:\t", response
     
     # Check if we need to auth
-    if len(response[4]):
-      auth_request = self.kXR_auth(authtoken=response[4])
+    if len(response['sec']):
+      auth_request = self.kXR_auth(authtoken=response['sec'])
       self.send(auth_request)
       response_raw = self.receive()
-      status, response = self.unpack(response_raw, auth_request)
-      print "kXR_auth response:\t", status
+      response = self.unpack(response_raw, auth_request)
+      print "kXR_auth response:\t", response
     
       # Check if we need to authmore
-      while response[1] == XProtocol.XResponseType.kXR_authmore:
+      while response['status'] == XProtocol.XResponseType.kXR_authmore:
         print "More authentication needed, continuing"
         auth_request = self.kXR_auth(contcred=response[-1])
         self.send(auth_request)
         response_raw = self.receive()
-        status, response = self.unpack(response_raw, auth_request)
-        print "kXR_auth response:\t", status
+        response = self.unpack(response_raw, auth_request)
+        print "kXR_auth response:\t", response
       
-    if get_responseid(status) == XProtocol.XResponseType.kXR_ok:
+    if response['status'] == XProtocol.XResponseType.kXR_ok:
       print "++++++ logged in successfully"
     else:
-      print "++++++ login failed (%s): %s" % (status, response[-1]) 
+      print "++++++ login failed (%s): %s" % (response['status'], 
+                                              response['errmsg']) 
   
   def handshake(self, **kwargs):
     """Return a packed representation of a handshake request. The default 

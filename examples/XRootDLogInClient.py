@@ -21,8 +21,8 @@ from lib.ClientRequestHelper import ClientRequestHelper
 class XRootDLogInClient:
   @classmethod
   def getDescription(cls):
-    return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 
-             'clients': 1, 'seclib': 'libXrdSec.so' }
+    return { 'type': 'Active', 'hostname': '192.168.56.101', 'port': 1094, 
+             'clients': 1, 'seclib': 'libXrdSec.dylib' }
 
   def __call__(self, context):
     client = ClientRequestHelper(context)
@@ -42,8 +42,8 @@ class XRootDLogInClient:
     stat_request = client.kXR_stat(path="/tmp")
     client.send(stat_request)
     response_raw = client.receive()
-    status, response = client.unpack(response_raw, stat_request)
-    print "kXR_stat response:\t", status, response
+    response = client.unpack(response_raw, stat_request)
+    print "kXR_stat response:\t", response
     
     
     
