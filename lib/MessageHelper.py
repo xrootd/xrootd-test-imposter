@@ -1,6 +1,26 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2011-2012 by European Organization for Nuclear Research (CERN)
+# Author: Justin Salmon <jsalmon@cern.ch>
+#-------------------------------------------------------------------------------
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#-------------------------------------------------------------------------------
+
 import sys
 import struct
 import socket
+
+from collections import namedtuple
 
 import XProtocol
 from Utils import *
@@ -105,13 +125,10 @@ class MessageHelper:
       format += (str(dlen) + 's')
          
     response_tuple = struct.unpack(format, response_raw)  
-    # Convert back to dict
-    response_dict = dict()
     
-    for i, param in enumerate(response_tuple):
-      response_dict.update({response_struct[i]['name']: param})
-    
-    return response_dict
+    # Convert to named tuple
+    response = namedtuple('response', ' '.join([m['name'] for m in response_struct]))
+    return response(*response_tuple) 
   
   def unpack_request(self, request_raw):
     """"""
@@ -154,19 +171,13 @@ class MessageHelper:
         
     request_tuple = struct.unpack(format, request_raw)
     
-    # Convert back to dict
-    request_dict = dict()
-    
-    for i, param in enumerate(request_tuple):
-      request_dict.update({request_struct[i]['name']: param})
-    
-    # Insert request type
-    if request_dict.has_key('second'): 
-      request_dict.update({'type': get_requestid(request_dict['second'])})
+    request_struct.insert(0, {'name': 'type'})
+    if requestid == XProtocol.XRequestTypes.handshake:
+      type = 'handshake'
     else:
-      request_dict.update({'type': get_requestid(request_dict['requestid'])})
+      type = get_requestid(requestid)
     
-    return request_dict
-    
-    
+    # Convert to named tuple
+    request = namedtuple('request', ' '.join([m['name'] for m in request_struct]))
+    return request(type, *request_tuple) 
       

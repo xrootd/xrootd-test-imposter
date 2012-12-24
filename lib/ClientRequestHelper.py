@@ -55,42 +55,42 @@ class ClientRequestHelper:
     self.send(handshake_request)
     response_raw = self.receive()
     response = self.unpack(response_raw, handshake_request)
-    print "kXR_handshake response:\t", response
+    print response
     
     protocol_request = self.kXR_protocol()
     self.send(protocol_request)
     response_raw = self.receive()
     response = self.unpack(response_raw, protocol_request)
-    print "kXR_protocol response:\t", response
+    print response
     
     login_request = self.kXR_login(username="jsalmon")
     self.send(login_request)
     response_raw = self.receive()
     response = self.unpack(response_raw, login_request)
-    print "kXR_login response:\t", response
+    print response
     
     # Check if we need to auth
-    if len(response['sec']):
-      auth_request = self.kXR_auth(authtoken=response['sec'])
+    if len(response.sec):
+      auth_request = self.kXR_auth(authtoken=response.sec)
       self.send(auth_request)
       response_raw = self.receive()
       response = self.unpack(response_raw, auth_request)
-      print "kXR_auth response:\t", response
+      print response
     
       # Check if we need to authmore
-      while response['status'] == XProtocol.XResponseType.kXR_authmore:
+      while response.status == XProtocol.XResponseType.kXR_authmore:
         print "More authentication needed, continuing"
         auth_request = self.kXR_auth(contcred=response[-1])
         self.send(auth_request)
         response_raw = self.receive()
         response = self.unpack(response_raw, auth_request)
-        print "kXR_auth response:\t", response
+        print response
       
-    if response['status'] == XProtocol.XResponseType.kXR_ok:
+    if response.status == XProtocol.XResponseType.kXR_ok:
       print "++++++ logged in successfully"
     else:
-      print "++++++ login failed (%s): %s" % (response['status'], 
-                                              response['errmsg']) 
+      print "++++++ login failed (%s): %s" % (response.status, 
+                                              response.errmsg) 
   
   def handshake(self, **kwargs):
     """Return a packed representation of a handshake request. The default 

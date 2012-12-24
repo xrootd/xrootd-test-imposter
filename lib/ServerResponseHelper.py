@@ -37,18 +37,19 @@ class ServerResponseHelper:
   def do_full_handshake(self):
     """"""
     for request in self.receive():
-      if request['type'] == 'kXR_protocol':
-        print 'hs + proto request:\t', request
-        self.send(self.handshake() 
-                  + self.protocol(streamid=request['streamid']))
       
-      elif request['type'] == 'kXR_login':
-        print 'login request:\t\t', request
-        self.send(self.login(streamid=request['streamid']))
+      if request.type == 'handshake':
+        print request
+        self.send(self.handshake() 
+                  + self.protocol(streamid=request.streamid))
+      
+      elif request.type == 'kXR_login':
+        print request
+        self.send(self.login(streamid=request.streamid))
         
-      elif request['type'] == 'kXR_auth':
-        print 'auth request:\t\t', request
-        self.send(self.auth(streamid=request['streamid']))
+      elif request.type == 'kXR_auth':
+        print request
+        self.send(self.auth(streamid=request.streamid))
         break
     
   
@@ -62,6 +63,7 @@ class ServerResponseHelper:
       request = self.unpack(self.mh.receive_message())
       if request:
         yield request
+      else: break
     
   def unpack(self, request_raw):
     """"""

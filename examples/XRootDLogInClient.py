@@ -43,7 +43,7 @@ class XRootDLogInClient:
     client.send(stat_request)
     response_raw = client.receive()
     response = client.unpack(response_raw, stat_request)
-    print "kXR_stat response:\t", response
+    print response
     
     
     

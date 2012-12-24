@@ -30,8 +30,8 @@ class XRootDLogInServer:
     
     for request in server.receive():
       
-      if request['type'] == 'kXR_stat':
-        print 'stat request:\t\t', request
+      if request.type == 'kXR_stat':
+        print request
         response = server.stat(id=0, size=0, flags=0, modtime=0)
         server.send(response)
         
