@@ -157,7 +157,7 @@ class MessageHelper:
       request_type_2 = XProtocol.XRequestTypes.reverse_mapping[requestid_2]
       request_struct += get_struct('Client' + request_type_2[4:].title()  
                                    + 'Request')
-    
+  
     format = '>'
     for member in request_struct:
       if member.has_key('size'):

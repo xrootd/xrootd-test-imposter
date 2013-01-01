@@ -19,6 +19,7 @@
 import sys
 import re
 import random
+import copy
 
 import XProtocol
 
@@ -47,7 +48,7 @@ def format_length(format):
     
 def struct_format(struct):
   format = '>'
-  
+
   for member in struct:
     if member.has_key('size'):
       if member['size'] == 'dlen':
@@ -65,7 +66,8 @@ def gen_sessid():
 def get_struct(name):
   """Return a representation of a struct as a list of dicts."""
   if hasattr(XProtocol, name):
-    return getattr(XProtocol, name)
+    struct = getattr(XProtocol, name)
+    return copy.copy(struct)
   
 def get_requestid(requestid):
   """Return the integer request ID associated with the given string

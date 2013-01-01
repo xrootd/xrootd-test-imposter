@@ -70,12 +70,17 @@ class ServerResponseHelper:
       elif request.type == 'kXR_auth':
         print request
         if verify_auth:
-          response = self.auth(streamid=request.streamid, cred=request.cred)
+          contparams = self.auth(request.cred)
+          if contparams:
+            response = self.kXR_authmore(streamid=request.streamid, 
+                                         data=contparams)
+          else:
+            response = self.kXR_ok(streamid=request.streamid)
         else: 
-          response = self.KXR_ok(streamid=request.streamid)
+          response = self.kXR_ok(streamid=request.streamid)
         
         self.send(response)
-        break
+        if not contparams: break
   
   def handshake(self, **kwargs):
     """Return a packed representation of a handshake response. The default 
@@ -103,20 +108,18 @@ class ServerResponseHelper:
     login = LoginHelper.LoginHelper(self.context)
     return login.build_response(**kwargs)
   
-  def auth(self, **kwargs):
-    """Return a packed representation of a kXR_auth response. The default 
-    response values can be individually modified by the optional kwargs.""" 
-    auth = AuthHelper.AuthHelper(self.context)
-    return auth.build_response(**kwargs)
+  def auth(self, cred):
+    """""" 
+    auth_helper = AuthHelper.AuthHelper(self.context)
+    return auth_helper.auth(cred)
   
   def stat(self, streamid=None, status=None, dlen=None, data=None, id=None,
            size=None, flags=None, modtime=None):
     """Return a packed representation of a kXR_stat response.""" 
     response_struct = get_struct('ServerResponseHeader') + \
-                      get_struct('ServerResponseBody_Buffer')
+                      get_struct('ServerResponseBody_Stat')
                       
-    if data:
-      pass
+    if data: pass
     else:
       data = (x for x in (id, size, flags, modtime) if x is not None)
       data = ' '.join([str(param) for param in data])
@@ -132,8 +135,16 @@ class ServerResponseHelper:
   def kXR_attn(self):
     pass
   
-  def kXR_authmore(self):
-    pass
+  def kXR_authmore(self, streamid=None, status=None, dlen=None, data=None):
+    """"""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Authmore')                     
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else XProtocol.XResponseType.kXR_authmore,
+     'dlen'    : dlen      if dlen     else len(data),
+     'data'    : data}
+    return self.mh.build_message(response_struct, params)
 
   def kXR_error(self):
     pass

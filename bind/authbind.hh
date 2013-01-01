@@ -36,6 +36,7 @@
 XrdSecProtocol *authProtocol;
 XrdOucEnv *authEnv;
 XrdSysLogger logger;
+std::string protocolName;
 
 const char *host = "localhost";
 const char *config;
@@ -44,9 +45,6 @@ void *libHandle;
 
 int sock;
 struct sockaddr_in *sockadd;
-
-std::string protocolName;
-std::stringstream err;
 
 // Authentication function handles
 typedef XrdSecProtocol *(*XrdSecGetProt_t)(const char *, const sockaddr &,

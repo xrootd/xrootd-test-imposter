@@ -30,6 +30,7 @@ using namespace std;
  *         return NULL and propagate this error.
  */
 void *openLibrary(const char* libName) {
+    std::stringstream err;
     void *libHandle = ::dlopen(libName, RTLD_NOW);
     if (!libHandle) {
         err << "Unable to load library " << libName << ": "
@@ -80,6 +81,7 @@ extern "C" {
 static PyObject* get_parms(PyObject *self, PyObject *args) {
 
     XrdSecService *securityService;
+    std::stringstream err;
 
     // Parse the python parameters
     if (!PyArg_ParseTuple(args, "ss", &config, &authLibName))
@@ -136,7 +138,9 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
  *             library, the sec.protocol directive and the client socket file
  *             descriptor.
  * @throw IOError on error or invalid credentials.
- * @return NULL on success.
+ * @return NULL on success and no further authentication needed, continuation
+ *         parameters and their length on success and more authentication
+ *         needed.
  */
 static PyObject* authenticate(PyObject *self, PyObject *args) {
 
@@ -144,9 +148,9 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
     int credsLen;
 
     XrdSecCredentials *credentials = 0;
-    XrdSecParameters *authParams;
-    XrdSecProtocol *authProtocol;
+    XrdSecParameters *contParams;
     XrdSecService *securityService;
+    std::stringstream err;
 
     // Parse the python parameters
     if (!PyArg_ParseTuple(args, "z#ssi", &creds, &credsLen, &authLibName,
@@ -188,10 +192,13 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    // Get the protocol
-    authProtocol = securityService->getProtocol((const char *) host,
-            (const sockaddr &) sockadd, (const XrdSecCredentials *) credentials,
-            &ei);
+    // Get the protocol (unless it already exists)
+    if (!authProtocol) {
+        authProtocol = securityService->getProtocol((const char *) host,
+                (const sockaddr &) sockadd,
+                (const XrdSecCredentials *) credentials, &ei);
+    }
+
     if (!authProtocol) {
         err << "getProtocol error: " << ei.getErrText() << endl;
         PyErr_SetString(PyExc_IOError, err.str().c_str());
@@ -199,16 +206,17 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
     }
 
     // Now authenticate the credentials
-    if (authProtocol->Authenticate(credentials, &authParams, &ei) < 0) {
+    int authResult = authProtocol->Authenticate(credentials, &contParams, &ei);
+    if (authResult < 0) {
         authProtocol->Delete();
         err << "Authentication error: " << ei.getErrText() << endl;
         PyErr_SetString(PyExc_IOError, err.str().c_str());
         return NULL;
+    } else if (authResult > 0) {
+        return Py_BuildValue("s#", contParams->buffer, contParams->size);
+    } else {
+        return Py_BuildValue("");
     }
-
-    cout << "authenticated successfully with " << credentials->buffer << endl;
-    // Don't need to return anything
-    return Py_BuildValue("");
 }
 
 
@@ -238,7 +246,8 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
     int contCredLen;
 
     XrdSecCredentials *credentials = 0;
-    XrdSecParameters *authParams;
+    XrdSecParameters *authParams = 0;
+    std::stringstream err;
 
     // Parse the python parameters
     if (!PyArg_ParseTuple(args, "z#z#si", &authToken, &authTokenLen, &contCred,

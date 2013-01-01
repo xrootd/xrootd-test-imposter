@@ -100,9 +100,11 @@ class AuthHelper:
   
   def auth(self, cred):
     try:
-      authenticate(cred, self.context['seclib'],
+      contparams = authenticate(cred, self.context['seclib'],
                    'sec.protocol ' + self.context['sec.protocol'] + '\n',
                    self.context['socket'].fileno())
+      return contparams if contparams else None
     except IOError, e:
       print "[!] Error authenticating:", e
       sys.exit(1)
+    
