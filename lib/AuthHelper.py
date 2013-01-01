@@ -49,12 +49,13 @@ class AuthHelper:
                         self.context['socket'].fileno())
     
     request_struct = get_struct('ClientAuthRequest')
-    params = {'streamid'  : streamid  if streamid   else self.context['streamid'],
-              'requestid' : requestid if requestid  else self.requestid,
-              'reserved'  : reserved  if reserved   else 12 * '\0',
-              'credtype'  : credtype  if credtype   else credname.ljust(4, '\0'),
-              'dlen'      : dlen      if dlen       else credlen,
-              'cred'      : cred      if cred       else credentials}
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else self.requestid,
+     'reserved'  : reserved  if reserved   else 12 * '\0',
+     'credtype'  : credtype  if credtype   else credname.ljust(4, '\0'),
+     'dlen'      : dlen      if dlen       else credlen,
+     'cred'      : cred      if cred       else credentials}
     
     return self.mh.build_message(request_struct, params)
   
@@ -64,9 +65,10 @@ class AuthHelper:
       self.auth(cred)
     
     response_struct = get_struct('ServerResponseHeader')                     
-    params = {'streamid'  : streamid  if streamid   else 0,
-              'status'    : status    if status     else XProtocol.XResponseType.kXR_ok,
-              'dlen'      : dlen      if dlen       else 0}
+    params = \
+    {'streamid'  : streamid  if streamid   else 0,
+     'status'    : status    if status     else XProtocol.XResponseType.kXR_ok,
+     'dlen'      : dlen      if dlen       else 0}
     
     return self.mh.build_message(response_struct, params)
   

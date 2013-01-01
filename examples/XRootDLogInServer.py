@@ -26,7 +26,6 @@ class XRootDLogInServer:
 
   def __call__( self, context ):
     server = ServerResponseHelper(context)
-    
     server.do_full_handshake(verify_auth=True)
     
     for request in server.receive():
@@ -36,7 +35,6 @@ class XRootDLogInServer:
         response = server.stat(id=0, size=0, flags=0, modtime=0)
         server.send(response)
         
-    
     server.close()
     
     

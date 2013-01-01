@@ -33,15 +33,6 @@
 #include "xrootd/XrdSys/XrdSysLogger.hh"
 
 
-//------------------------------------------------------------------------------
-// Authentication function handles
-//------------------------------------------------------------------------------
-typedef XrdSecProtocol *(*XrdSecGetProt_t)(const char *, const sockaddr &,
-        const XrdSecParameters &, XrdOucErrInfo *);
-
-typedef XrdSecService *(*XrdSecGetServ_t)(XrdSysLogger *, const char *);
-
-
 XrdSecProtocol *authProtocol;
 XrdOucEnv *authEnv;
 XrdSysLogger logger;
@@ -56,4 +47,10 @@ struct sockaddr_in *sockadd;
 
 std::string protocolName;
 std::stringstream err;
+
+// Authentication function handles
+typedef XrdSecProtocol *(*XrdSecGetProt_t)(const char *, const sockaddr &,
+        const XrdSecParameters &, XrdOucErrInfo *);
+typedef XrdSecService *(*XrdSecGetServ_t)(XrdSysLogger *, const char *);
+
 

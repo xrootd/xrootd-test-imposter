@@ -45,12 +45,12 @@ class ClientRequestHelper:
     return self.mh.receive_message()
   
   def unpack(self, response_raw, request):
-    """Return an unpacked dict representation of a server response."""
+    """Return an unpacked named tuple representation of a server response."""
     return self.mh.unpack_response(response_raw, request)
     
   def do_full_handshake(self):
-    """Perform handshake/protocol/login/auth/authmore sequence with
-    default values."""
+    """Perform handshake/protocol/login/auth/authmore sequence with default 
+    values."""
     handshake_request = self.handshake()
     self.send(handshake_request)
     response_raw = self.receive()
@@ -63,7 +63,7 @@ class ClientRequestHelper:
     response = self.unpack(response_raw, protocol_request)
     print response
     
-    login_request = self.kXR_login(username="jsalmon")
+    login_request = self.kXR_login()
     self.send(login_request)
     response_raw = self.receive()
     response = self.unpack(response_raw, login_request)
@@ -100,8 +100,7 @@ class ClientRequestHelper:
 
   def kXR_protocol(self, streamid=None, requestid=None, clientpv=None,
                    reserved=None, dlen=None):
-    """Return a packed representation of a kXR_protocol request. The default 
-    request values can be individually modified by the optional keyword args."""
+    """Return a packed representation of a kXR_protocol request."""
     request_struct = get_struct('ClientProtocolRequest')
     
     params = \
@@ -126,8 +125,7 @@ class ClientRequestHelper:
     return auth.build_request(**kwargs)
     
   def kXR_ping(self, streamid=None, requestid=None, reserved=None, dlen=None):
-    """Return a packed representation of a kXR_ping request. The default 
-    request values can be individually modified by the optional keyword args."""
+    """Return a packed representation of a kXR_ping request."""
     request_struct = get_struct('ClientPingRequest')
     
     params = \

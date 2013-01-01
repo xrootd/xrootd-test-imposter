@@ -25,7 +25,9 @@ using namespace std;
  * Open a shared library using dlopen.
  *
  * @param libName name of the library to open.
- * @return handle to the open library on success, 0 on failure.
+ * @return handle to the open library on success, 0 on failure. On failure,
+ *         PyErr_SetString will also be called, so the calling function can
+ *         return NULL and propagate this error.
  */
 void *openLibrary(const char* libName) {
     void *libHandle = ::dlopen(libName, RTLD_NOW);
@@ -52,10 +54,12 @@ const char *writeTempFile(const char* data) {
 }
 
 /**
+ * Fill a sockaddr_in struct from the socket descriptor given using
+ * getsockname().
  *
+ * @param sock the socket file descriptor to use.
  */
 void createSock(int sock) {
-    // Create a sockaddr_in from the socket descriptor given
     socklen_t socklen = sizeof(struct sockaddr_in);
     sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
     getsockname(sock, (sockaddr*) sockadd, &socklen);
@@ -65,7 +69,13 @@ void createSock(int sock) {
 extern "C" {
 
 /**
+ * Build a security token to send as a response to a kXR_login request,
+ * if the given sec.protocol configuration directive is not empty.
  *
+ * @param args the Python tuple containing the configuration directive
+ *             and the authentication library name.
+ * @throw IOError on error.
+ * @return the security token that was built.
  */
 static PyObject* get_parms(PyObject *self, PyObject *args) {
 
@@ -112,12 +122,21 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
         return NULL;
     }
 
+    // Return the security token
     return Py_BuildValue("s", token);
 }
 
 
 /**
+ * Authenticate a client's credentials which were supplied via a kXR_auth
+ * request.
  *
+ * @param args the Python tuple containing the credential string, the length
+ *             of the credentials, the name of the authentication shared
+ *             library, the sec.protocol directive and the client socket file
+ *             descriptor.
+ * @throw IOError on error or invalid credentials.
+ * @return NULL on success.
  */
 static PyObject* authenticate(PyObject *self, PyObject *args) {
 
@@ -194,7 +213,21 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
 
 
 /**
+ * Try to get an initial credentials object for any supported protocol (prompted
+ * by a kXR_auth response), or a continuation credentials object (prompted by a
+ * kXR_authmore response).
  *
+ * On the first call to this method, the args tuple should contain the
+ * authToken variable, and the contCred variable should be null. On subsequent
+ * calls, the opposite should be true.
+ *
+ * @param args the Python tuple containing (potentially) the security token, the
+ *             length of the security token, the continuation credentials, the
+ *             continuation credential length, the name of the authentication
+ *             library and the client socket file descriptor.
+ * @throw IOError on error or credentials cannot be acquired for any protocols.
+ * @return name of the successful protocol, the opaque credentials string and
+ *         length of the credentials on success.
  */
 static PyObject* get_credentials(PyObject *self, PyObject *args) {
 
@@ -293,7 +326,7 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 
 static PyMethodDef AuthBindMethods[] = {
         { "get_credentials", get_credentials, METH_VARARGS,
-          "Get opaque credentials objector continuation credentials." },
+          "Get opaque credentials object or continuation credentials." },
         { "authenticate", authenticate, METH_VARARGS,
           "Authenticate credentials provided by a client." },
         { "get_parms", get_parms, METH_VARARGS,
