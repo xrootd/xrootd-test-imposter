@@ -59,7 +59,7 @@ class LoginHelper:
     # Check if client needs to authenticate
     auth = AuthHelper.AuthHelper(self.context) 
     if not sec:
-      sec = auth.get_sec_token()
+      sec = auth.getsectoken()
                       
     params = \
     {'streamid'  : streamid   if streamid   else 0,

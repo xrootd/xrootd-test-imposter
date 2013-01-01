@@ -26,7 +26,8 @@ class XRootDLogInServer:
 
   def __call__( self, context ):
     server = ServerResponseHelper(context)
-    server.do_full_handshake()
+    
+    server.do_full_handshake(verify_auth=True)
     
     for request in server.receive():
       

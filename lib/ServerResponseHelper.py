@@ -34,7 +34,7 @@ class ServerResponseHelper:
     self.context = context    
     self.mh = MessageHelper.MessageHelper(context)
     
-  def do_full_handshake(self):
+  def do_full_handshake(self, verify_auth=False):
     """"""
     for request in self.receive():
       
@@ -49,7 +49,12 @@ class ServerResponseHelper:
         
       elif request.type == 'kXR_auth':
         print request
-        self.send(self.auth(streamid=request.streamid))
+        if verify_auth:
+          response = self.auth(streamid=request.streamid, cred=request.cred)
+        else: 
+          response = self.auth(streamid=request.streamid)
+        
+        self.send(response)
         break
     
   

@@ -58,9 +58,12 @@ class AuthHelper:
     
     return self.mh.build_message(request_struct, params)
   
-  def build_response(self, streamid=None, status=None, dlen=None):
-    response_struct = get_struct('ServerResponseHeader')
-                      
+  def build_response(self, cred=None, streamid=None, status=None, dlen=None):
+    """"""
+    if cred:
+      self.auth(cred)
+    
+    response_struct = get_struct('ServerResponseHeader')                     
     params = {'streamid'  : streamid  if streamid   else 0,
               'status'    : status    if status     else XProtocol.XResponseType.kXR_ok,
               'dlen'      : dlen      if dlen       else 0}
@@ -83,7 +86,7 @@ class AuthHelper:
       sys.exit(1)
     return credname, creds, len(creds)
   
-  def get_sec_token(self):
+  def getsectoken(self):
     try:
       token = get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
                      self.context['seclib'])
@@ -93,10 +96,9 @@ class AuthHelper:
     
     return token
   
-  def auth(self, creds):
+  def auth(self, cred):
     try:
-      authenticate(bytearray(creds),
-                   self.context['seclib'],
+      authenticate(cred, self.context['seclib'],
                    'sec.protocol ' + self.context['sec.protocol'] + '\n',
                    self.context['socket'].fileno())
     except IOError, e:

@@ -75,9 +75,9 @@ class MessageHelper:
     return message   
   
   def unpack_response(self, response_raw, request_raw):
-    """Return an unpacked dict representation of a server response."""    
+    """Return an unpacked named tuple representation of a server response."""    
     request = self.unpack_request(request_raw)
-    requestid = get_requestid(request['type'])
+    requestid = get_requestid(request.type)
     
     header_struct = get_struct('ServerResponseHeader')
     format = '>'
@@ -101,7 +101,7 @@ class MessageHelper:
                                + get_responseid(status)[4:].title())
     else:
       body_struct = get_struct('ServerResponseBody_' \
-                               + request['type'][4:].title())
+                               + request.type[4:].title())
 
     if not body_struct: body_struct = list()
     
@@ -121,14 +121,14 @@ class MessageHelper:
       else: 
         format += member['type']
          
-    if len(body_struct) == 0:
+    if len(body_struct) == 0 and dlen > 0:
       format += (str(dlen) + 's')
          
     response_tuple = struct.unpack(format, response_raw)  
     
     # Convert to named tuple
     response = namedtuple('response', ' '.join([m['name'] for m in response_struct]))
-    return response(*response_tuple) 
+    return response(*response_tuple)
   
   def unpack_request(self, request_raw):
     """"""

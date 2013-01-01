@@ -614,6 +614,10 @@ ServerResponseBody_Buffer = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
+ServerResponseBody_Stat = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
 # The fields to be sent as initial handshake
 ClientInitHandShake = [
   {'name': 'first', 'type': 'l'},
