@@ -55,7 +55,7 @@ class MessageHelper:
           format += str(member['size']) + member['type']
       else: 
         format += member['type']
-
+    
     message = tuple(flatten(message))
     return struct.pack(format, *message)
     

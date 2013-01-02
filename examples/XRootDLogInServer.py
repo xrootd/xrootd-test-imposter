@@ -22,21 +22,28 @@ class XRootDLogInServer:
   @classmethod
   def getDescription( cls ):
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
-             'seclib': 'libXrdSec.dylib', 'sec.protocol': 'unix' }
+             'seclib': 'libXrdSec.so', 'sec.protocol': 'gsi' }
 
   def __call__( self, context ):
     server = ImposterServer(context)
     
     server.do_full_handshake(verify_auth=True)
-    
     for request in server.receive():
       
       if request.type == 'kXR_stat':
         print request
-        #response = server.stat(id=0, size=0, flags=0, modtime=0)
-        response = server.kXR_error(errmsg='foobar')
+        #response = server.kXR_stat(id=0, size=0, flags=0, modtime=0)
+        #response = server.kXR_error(errmsg='foobar')
+        #response = server.kXR_redirect(host='localhost')
+        #response = server.kXR_wait(seconds=5, infomsg='foobar')
+        response = server.kXR_waitresp(seconds=5)
         server.send(response)
         
+      if request.type == 'kXR_stat':
+        print request
+        response = server.kXR_stat(id=0, size=0, flags=0, modtime=0)
+        server.send(response)
+    
     server.close()
     
     

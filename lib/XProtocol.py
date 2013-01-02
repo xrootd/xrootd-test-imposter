@@ -560,7 +560,7 @@ ServerResponseBody_Login = [
 
 ServerResponseBody_Redirect = [
   {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 's', 'size': 4096}
+  {'name': 'host', 'type': 's', 'size': 'dlen'}
 ]
 
 ServerResponseBody_Error = [
@@ -570,7 +570,7 @@ ServerResponseBody_Error = [
 
 ServerResponseBody_Wait = [
   {'name': 'seconds', 'type': 'l'},
-  {'name': 'infomsg', 'type': 's', 'size': 4096}
+  {'name': 'infomsg', 'type': 's', 'size': 'dlen'}
 ]
 
 ServerResponseBody_Waitresp = [
@@ -579,20 +579,20 @@ ServerResponseBody_Waitresp = [
 
 ServerResponseBody_Attn = [
   {'name': 'actnum', 'type': 'l'},
-  {'name': 'parms', 'type': 's', 'size': 4096}
+  {'name': 'parms', 'type': 's', 'size': 'dlen'}
 ]
 
 ServerResponseBody_Attn_asyncrd = [
   {'name': 'actnum', 'type': 'l'},
   {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 's', 'size': 4096}
+  {'name': 'host', 'type': 's', 'size': 'dlen'}
 ]
 
 ServerResponseBody_Attn_asynresp = [
   {'name': 'actnum', 'type': 'l'},
   {'name': 'reserved', 'type': 's', 'size': 4},
   {'name': 'resphdr', 'type': 'ServerResponseHeader'},
-  {'name': 'respdata', 'type': 's', 'size': 4096}
+  {'name': 'respdata', 'type': 's', 'size': 'dlen'}
 ]
 
 ServerResponseBody_Attn_asyncwt = [

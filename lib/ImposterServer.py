@@ -66,19 +66,18 @@ class ImposterServer:
         print request
         # Send handshake + protocol at the same time
         self.send(self.handshake() 
-                  + self.protocol(streamid=request.streamid))
+                  + self.kXR_protocol(streamid=request.streamid))
       
       elif request.type == 'kXR_login':
         print request
-        self.send(self.login(streamid=request.streamid))
+        self.send(self.kXR_login(streamid=request.streamid))
         
       elif request.type == 'kXR_auth':
-        print request
         
         if verify_auth:
           # Authenticate this request's credentials and potentially get
           # continuation (authmore) parameters
-          contparams = self.auth(request.cred)
+          contparams = self.authenticate(request.cred)
           if contparams:
             # Send an authmore if necessary
             response = self.kXR_authmore(streamid=request.streamid, 
@@ -97,10 +96,14 @@ class ImposterServer:
         # scenario deal with the next request.
         if not contparams: break
         
-  def auth(self, cred):
+  def authenticate(self, cred):
     """Authenticate the given credentials.""" 
     auth_helper = AuthHelper.AuthHelper(self.context)
     return auth_helper.auth(cred)
+  
+  #=============================================================================
+  # Specific server responses
+  #=============================================================================
   
   def handshake(self, streamid=None, status=None, dlen=None, protover=None,
                 msgval=None):
@@ -115,7 +118,7 @@ class ImposterServer:
      'msgval'  : msgval    if msgval   else 1}
     return self.mh.build_message(response_struct, params)
     
-  def protocol(self, streamid=None, status=None, dlen=None, pval=None, 
+  def kXR_protocol(self, streamid=None, status=None, dlen=None, pval=None, 
                flags=None):
     """Return a packed representation of a kXR_protocol response.""" 
     response_struct = get_struct('ServerResponseHeader') + \
@@ -128,7 +131,7 @@ class ImposterServer:
      'flags'   : flags     if flags    else XProtocol.kXR_isServer}
     return self.mh.build_message(response_struct, params)
     
-  def login(self, streamid=None, status=None, dlen=None, sessid=None,
+  def kXR_login(self, streamid=None, status=None, dlen=None, sessid=None,
             sec=None):
     """Return a packed representation of a kXR_login response."""
     response_struct = get_struct('ServerResponseHeader') + \
@@ -146,7 +149,7 @@ class ImposterServer:
      'sec'     : sec}
     return self.mh.build_message(response_struct, params)
   
-  def stat(self, streamid=None, status=None, dlen=None, data=None, id=None,
+  def kXR_stat(self, streamid=None, status=None, dlen=None, data=None, id=None,
            size=None, flags=None, modtime=None):
     """Return a packed representation of a kXR_stat response.""" 
     response_struct = get_struct('ServerResponseHeader') + \
@@ -164,7 +167,11 @@ class ImposterServer:
      'data'    : data}
     return self.mh.build_message(response_struct, params)
   
-  def kXR_attn(self):
+  #=============================================================================
+  # Generic server responses
+  #=============================================================================
+  
+  def kXR_attn(self, streamid=None, status=None, dlen=None):
     """Return a packed representation of a kXR_attn response."""
     pass
   
@@ -196,30 +203,65 @@ class ImposterServer:
      'errmsg'  : errmsg}
     return self.mh.build_message(response_struct, params)
 
-  def kXR_ok(self, streamid=None, status=None, dlen=None):
-    """Return a packed kXR_ok response."""
-    response_struct = get_struct('ServerResponseHeader')
+  def kXR_ok(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_ok response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Buffer')
+
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_ok'),
-     'dlen'    : dlen      if dlen     else 0}
+     'dlen'    : dlen      if dlen     else 0,
+     'data'    : data      if data     else ''}
     return self.mh.build_message(response_struct, params)
   
-  def KXR_oksofar(self):
-    """"""
-    pass
+  def KXR_oksofar(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_oksofar response."""
+    status = get_responseid('kXR_oksofar')
+    return self.kXR_ok(streamid, status, dlen, data)
   
-  def kXR_redirect(self):
-    """"""
-    pass
+  def kXR_redirect(self, streamid=None, status=None, dlen=None, port=None,
+                   host=None, opaque=None, token=None):
+    """Return a packed representation of a kXR_redirect response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Redirect')
+
+    if host: host += (opaque if opaque else '') + (token if token else '')
+
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_redirect'),
+     'dlen'    : dlen      if dlen     else len(host) + 4,
+     'port'    : port      if port     else 0,
+     'host'    : host      if host     else r''}
+    return self.mh.build_message(response_struct, params)
   
-  def kXR_wait(self):
-    """"""
-    pass
+  def kXR_wait(self, streamid=None, status=None, dlen=None, seconds=None,
+               infomsg=None):
+    """Return a packed representation of a kXR_wait response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Wait')
+    if not infomsg: infomsg = ''
+
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_wait'),
+     'dlen'    : dlen      if dlen     else len(infomsg) + 4,
+     'seconds' : seconds   if seconds  else 0,
+     'infomsg' : infomsg}
+    return self.mh.build_message(response_struct, params)
   
-  def kXR_waitresp(self):
-    """"""
-    pass
+  def kXR_waitresp(self, streamid=None, status=None, dlen=None, seconds=None):
+    """Return a packed kXR_waitresp response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Waitresp')
+
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_waitresp'),
+     'dlen'    : dlen      if dlen     else 4,
+     'seconds' : seconds   if seconds  else 0}
+    return self.mh.build_message(response_struct, params)
     
   
   
