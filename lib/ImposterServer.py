@@ -23,7 +23,7 @@ import XProtocol
 import MessageHelper
 import AuthHelper
 
-from Utils import *
+from Utils import get_struct, gen_sessid, get_responseid
 
       
 class ImposterServer:
@@ -121,7 +121,7 @@ class ImposterServer:
                       get_struct('ServerResponseBody_Protocol')
     params = \
     {'streamid': streamid  if streamid else 0,
-     'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+     'status'  : status    if status   else get_responseid('kXR_ok'),
      'dlen'    : dlen      if dlen     else 8,
      'pval'    : pval      if pval     else XProtocol.kXR_PROTOCOLVERSION,
      'flags'   : flags     if flags    else XProtocol.kXR_isServer}
@@ -139,7 +139,7 @@ class ImposterServer:
                       
     params = \
     {'streamid': streamid  if streamid else 0,
-     'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+     'status'  : status    if status   else get_responseid('kXR_ok'),
      'dlen'    : dlen      if dlen     else len(sec) + 16,
      'sessid'  : sessid    if sessid   else gen_sessid(),
      'sec'     : sec}
@@ -158,7 +158,7 @@ class ImposterServer:
     
     params = \
     {'streamid': streamid  if streamid else 0,
-     'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+     'status'  : status    if status   else get_responseid('kXR_ok'),
      'dlen'    : dlen      if dlen     else len(data),
      'data'    : data}
     return self.mh.build_message(response_struct, params)
@@ -173,8 +173,7 @@ class ImposterServer:
                       get_struct('ServerResponseBody_Authmore')                     
     params = \
     {'streamid': streamid  if streamid else 0,
-     'status'  : status    if status   else XProtocol.XResponseType
-                                            .kXR_authmore,
+     'status'  : status    if status   else get_responseid('kXR_authmore'),
      'dlen'    : dlen      if dlen     else len(data),
      'data'    : data}
     return self.mh.build_message(response_struct, params)
@@ -188,7 +187,7 @@ class ImposterServer:
     response_struct = get_struct('ServerResponseHeader')
     params = \
     {'streamid': streamid  if streamid else 0,
-     'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+     'status'  : status    if status   else get_responseid('kXR_ok'),
      'dlen'    : dlen      if dlen     else 0}
     return self.mh.build_message(response_struct, params)
   

@@ -21,9 +21,10 @@ import struct
 import socket
 
 from collections import namedtuple
+from Utils import flatten, struct_format, format_length, get_requestid, \
+                  get_responseid, get_struct
 
 import XProtocol
-from Utils import *
 
 
 class MessageHelper:

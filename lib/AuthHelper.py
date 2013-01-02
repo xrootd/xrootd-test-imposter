@@ -25,7 +25,7 @@ import XProtocol
 import MessageHelper
 
 from authbind import get_credentials, authenticate, get_parms
-from Utils import *
+from Utils import get_struct, get_requestid, get_responseid
 
 class AuthHelper:
   

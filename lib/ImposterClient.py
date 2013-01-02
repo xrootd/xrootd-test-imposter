@@ -25,7 +25,7 @@ import XProtocol
 import MessageHelper
 import AuthHelper
 
-from Utils import *
+from Utils import get_struct, get_requestid
 
 
 class ImposterClient:
@@ -147,8 +147,7 @@ class ImposterClient:
     
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
-     'requestid' : requestid  if requestid  else XProtocol.XRequestTypes
-                                                 .kXR_login,
+     'requestid' : requestid  if requestid  else get_requestid('kXR_login'),
      'pid'       : pid        if pid        else os.getpid(),
      'username'  : username   if username   else ''.ljust(8, "\0"),
      'reserved'  : reserved   if reserved   else '\0',
@@ -242,12 +241,12 @@ class ImposterClient:
     if not path: path = "/tmp"
     
     params = \
-    {'streamid'  : streamid  if streamid   else self.context['streamid'],
-     'requestid' : requestid if requestid  else get_requestid('kXR_stat'),
-     'options'   : options   if options    else '0',
-     'reserved'  : reserved  if reserved   else (11 * "\0"),
-     'fhandle'   : fhandle   if fhandle    else (4 * "\0"),
-     'dlen'      : dlen      if dlen       else len(path),
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_stat'),
+     'options'   : options    if options    else '0',
+     'reserved'  : reserved   if reserved   else (11 * "\0"),
+     'fhandle'   : fhandle    if fhandle    else (4 * "\0"),
+     'dlen'      : dlen       if dlen       else len(path),
      'path'      : path}
     
     return self.mh.build_message(request_struct, params)
