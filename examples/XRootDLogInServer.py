@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-from lib.ServerResponseHelper import ServerResponseHelper
+from lib.ImposterServer import ImposterServer
 
 class XRootDLogInServer:
   @classmethod
@@ -25,7 +25,8 @@ class XRootDLogInServer:
              'seclib': 'libXrdSec.so', 'sec.protocol': 'gsi' }
 
   def __call__( self, context ):
-    server = ServerResponseHelper(context)
+    server = ImposterServer(context)
+    
     server.do_full_handshake(verify_auth=True)
     
     for request in server.receive():

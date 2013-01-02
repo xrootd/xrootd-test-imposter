@@ -20,15 +20,14 @@ import sys
 import struct
 
 import XProtocol
-import HandshakeHelper
 import MessageHelper
-import LoginHelper
 import AuthHelper
 
 from Utils import *
 
       
-class ServerResponseHelper:
+class ImposterServer:
+  """Class to aid sending/receiving xrootd server messages."""
   
   def __init__(self, context):
     self.context = context    
@@ -39,12 +38,16 @@ class ServerResponseHelper:
     self.mh.send_message(response)
   
   def receive(self):
-    """Receive a packed xrootd request."""
+    """Receive a packed xrootd request (iterable generator method)"""
     while True:
       request = self.unpack(self.mh.receive_message())
       if request:
         yield request
       else: break
+      
+  def close(self):
+    """Close this server socket"""
+    self.context['socket'].close()
     
   def unpack(self, request_raw):
     """Return an unpacked named tuple representation of a client request."""
@@ -81,12 +84,24 @@ class ServerResponseHelper:
         
         self.send(response)
         if not contparams: break
+        
+  def auth(self, cred):
+    """Authenticate the given credentials.""" 
+    auth_helper = AuthHelper.AuthHelper(self.context)
+    return auth_helper.auth(cred)
   
-  def handshake(self, **kwargs):
-    """Return a packed representation of a handshake response. The default 
-    response values can be individually modified by the optional kwargs."""    
-    handshake = HandshakeHelper.HandshakeHelper(self.context)
-    return handshake.build_response(**kwargs)
+  def handshake(self, streamid=None, status=None, dlen=None, protover=None,
+                msgval=None):
+    """Return a packed representation of a server handshake response."""
+    response_struct = get_struct('ServerResponseHeader') \
+                    + get_struct('ServerInitHandShake')
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else 0,
+     'dlen'    : dlen      if dlen     else 8,
+     'protover': protover  if protover else 663,
+     'msgval'  : msgval    if msgval   else 1}
+    return self.mh.build_message(response_struct, params)
     
   def protocol(self, streamid=None, status=None, dlen=None, pval=None, 
                flags=None):
@@ -99,19 +114,25 @@ class ServerResponseHelper:
      'dlen'    : dlen      if dlen     else 8,
      'pval'    : pval      if pval     else XProtocol.kXR_PROTOCOLVERSION,
      'flags'   : flags     if flags    else XProtocol.kXR_isServer}
-    
     return self.mh.build_message(response_struct, params)
     
-  def login(self, **kwargs):
-    """Return a packed representation of a kXR_login response. The default 
-    response values can be individually modified by the optional kwargs.""" 
-    login = LoginHelper.LoginHelper(self.context)
-    return login.build_response(**kwargs)
-  
-  def auth(self, cred):
-    """""" 
-    auth_helper = AuthHelper.AuthHelper(self.context)
-    return auth_helper.auth(cred)
+  def login(self, streamid=None, status=None, dlen=None, sessid=None,
+            sec=None):
+    """Return a packed representation of a kXR_login response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Login')              
+    # Check if client needs to authenticate
+    auth = AuthHelper.AuthHelper(self.context) 
+    if not sec:
+      sec = auth.getsectoken()
+                      
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+     'dlen'    : dlen      if dlen     else len(sec) + 16,
+     'sessid'  : sessid    if sessid   else gen_sessid(),
+     'sec'     : sec}
+    return self.mh.build_message(response_struct, params)
   
   def stat(self, streamid=None, status=None, dlen=None, data=None, id=None,
            size=None, flags=None, modtime=None):
@@ -129,49 +150,52 @@ class ServerResponseHelper:
      'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
      'dlen'    : dlen      if dlen     else len(data),
      'data'    : data}
-    
     return self.mh.build_message(response_struct, params)
   
   def kXR_attn(self):
+    """Return a packed representation of a kXR_attn response."""
     pass
   
   def kXR_authmore(self, streamid=None, status=None, dlen=None, data=None):
-    """"""
+    """Return a packed representation of a kXR_authmore response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Authmore')                     
     params = \
     {'streamid': streamid  if streamid else 0,
-     'status'  : status    if status   else XProtocol.XResponseType.kXR_authmore,
+     'status'  : status    if status   else XProtocol.XResponseType
+                                            .kXR_authmore,
      'dlen'    : dlen      if dlen     else len(data),
      'data'    : data}
     return self.mh.build_message(response_struct, params)
 
   def kXR_error(self):
+    """"""
     pass
 
-  def kXR_ok(self, streamid=None):
-    """Return a packed kXR_ok response with default values."""
+  def kXR_ok(self, streamid=None, status=None, dlen=None):
+    """Return a packed kXR_ok response."""
     response_struct = get_struct('ServerResponseHeader')
     params = \
     {'streamid': streamid  if streamid else 0,
-     'status'  : XProtocol.XResponseType.kXR_ok,
-     'dlen'    : 0}
+     'status'  : status    if status   else XProtocol.XResponseType.kXR_ok,
+     'dlen'    : dlen      if dlen     else 0}
     return self.mh.build_message(response_struct, params)
   
   def KXR_oksofar(self):
+    """"""
     pass
   
   def kXR_redirect(self):
+    """"""
     pass
   
   def kXR_wait(self):
+    """"""
     pass
   
   def kXR_waitresp(self):
+    """"""
     pass
     
-  def close(self):
-    """Close this server socket"""
-    self.context['socket'].close()
   
   

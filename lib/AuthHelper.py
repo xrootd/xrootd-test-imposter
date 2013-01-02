@@ -36,6 +36,7 @@ class AuthHelper:
   def build_request(self, authtoken=None, contcred=None, streamid=None, 
                     requestid=None, reserved=None, credtype=None, dlen=None, 
                     cred=None):
+    """"""
     
     if not authtoken and not contcred:
       print "[!] Can't build kXR_auth request: no auth token or continuation \
@@ -51,7 +52,7 @@ class AuthHelper:
     request_struct = get_struct('ClientAuthRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
-     'requestid' : requestid if requestid  else self.requestid,
+     'requestid' : requestid if requestid  else XProtocol.XRequestTypes.kXR_auth,
      'reserved'  : reserved  if reserved   else 12 * '\0',
      'credtype'  : credtype  if credtype   else credname.ljust(4, '\0'),
      'dlen'      : dlen      if dlen       else credlen,
@@ -72,15 +73,8 @@ class AuthHelper:
     
     return self.mh.build_message(response_struct, params)
   
-  @property
-  def requestid(self):
-    return XProtocol.XRequestTypes.kXR_auth
-  
-  @property
-  def request_format(self):
-    return struct_format(get_struct('ClientAuthRequest'))
-  
   def getcredentials(self, authtoken, contcred, seclib, sockfd):
+    """"""
     try:
       credname, creds = get_credentials(authtoken, contcred, seclib, sockfd)
     except IOError, e:
@@ -89,6 +83,7 @@ class AuthHelper:
     return credname, creds, len(creds)
   
   def getsectoken(self):
+    """"""
     try:
       token = get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
                      self.context['seclib'])
@@ -99,6 +94,7 @@ class AuthHelper:
     return token
   
   def auth(self, cred):
+    """"""
     try:
       contparams = authenticate(cred, self.context['seclib'],
                    'sec.protocol ' + self.context['sec.protocol'] + '\n',

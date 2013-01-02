@@ -67,6 +67,7 @@ class MessageHelper:
       sys.exit(1)
   
   def receive_message(self):
+    """"""
     try:  
       message = self.sock.recv(4096)
     except socket.error, e:

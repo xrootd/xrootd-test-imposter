@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-from lib.ClientRequestHelper import ClientRequestHelper
+from lib.ImposterClient import ImposterClient
 
 class XRootDLogInClient:
   @classmethod
@@ -25,18 +25,9 @@ class XRootDLogInClient:
              'clients': 1, 'seclib': 'libXrdSec.dylib' }
 
   def __call__(self, context):
-    client = ClientRequestHelper(context)
+    client = ImposterClient(context)
     
     client.do_full_handshake()
-    
-#     handshake_request = client.handshake(fifth=2013)
-#     client.send(handshake_request)
-#     response_raw = client.receive()
-#     response = client.unpack(response_raw, handshake_request)
-#     
-#     client.protocol()
-#     client.login(username='default', admin=False)
-#     client.ping()
     
 
     stat_request = client.kXR_stat(path="/tmp")
