@@ -63,6 +63,7 @@ class ImposterServer:
       
       if request.type == 'handshake':
         print request
+        # Send handshake + protocol at the same time
         self.send(self.handshake() 
                   + self.protocol(streamid=request.streamid))
       
@@ -72,17 +73,27 @@ class ImposterServer:
         
       elif request.type == 'kXR_auth':
         print request
+        
         if verify_auth:
+          # Authenticate this request's credentials and potentially get
+          # continuation (authmore) parameters
           contparams = self.auth(request.cred)
           if contparams:
+            # Send an authmore if necessary
             response = self.kXR_authmore(streamid=request.streamid, 
                                          data=contparams)
           else:
+            # We are done authenticating
             response = self.kXR_ok(streamid=request.streamid)
-        else: 
+        
+        else:
+          # Not checking the credentials
           response = self.kXR_ok(streamid=request.streamid)
         
         self.send(response)
+        # If we have contparams, there will be more auth-related requests 
+        # to receive at this stage. Otherwise, break here and let the 
+        # scenario deal with the next request.
         if not contparams: break
         
   def auth(self, cred):

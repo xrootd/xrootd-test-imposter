@@ -22,7 +22,7 @@ class XRootDLogInServer:
   @classmethod
   def getDescription( cls ):
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
-             'seclib': 'libXrdSec.so', 'sec.protocol': 'gsi' }
+             'seclib': 'libXrdSec.dylib', 'sec.protocol': 'unix' }
 
   def __call__( self, context ):
     server = ImposterServer(context)

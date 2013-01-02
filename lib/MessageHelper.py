@@ -77,18 +77,17 @@ class MessageHelper:
   
   def unpack_response(self, response_raw, request_raw):
     """Return an unpacked named tuple representation of a server response."""    
+    # Unpack the request that generated this response for reference
     request = self.unpack_request(request_raw)
     requestid = get_requestid(request.type)
     
+    # Unpack the response header to find the status and data length
     header_struct = get_struct('ServerResponseHeader')
-    format = '>'
-     
+    format = '>' 
     for member in header_struct:
       format += member['type']
-    
     header = struct.unpack(format + (str(len(response_raw) - 8) + 's'), 
                            response_raw)
-    
     streamid = header[0]
     status = header[1]
     dlen = header[2]
@@ -103,41 +102,41 @@ class MessageHelper:
     else:
       body_struct = get_struct('ServerResponseBody_' \
                                + request.type[4:].title())
-
+      
     if not body_struct: body_struct = list()
     
+    # Build complete format string
     format = '>'
     response_struct = header_struct + body_struct
-    
     for member in response_struct:
       if member.has_key('size'):
         if member['size'] == 'dlen':
           if member.has_key('offset'):
-            format += str(dlen - member['offset']) \
-                      + member['type']
+            format += str(dlen - member['offset']) + member['type']
           else:       
             format += str(dlen) + member['type']
         else:
           format += str(member['size']) + member['type']
       else: 
         format += member['type']
-         
+    
     if len(body_struct) == 0 and dlen > 0:
       format += (str(dlen) + 's')
-         
-    response_tuple = struct.unpack(format, response_raw)  
     
+    # Unpack to regular tuple
+    response_tuple = struct.unpack(format, response_raw)  
     # Convert to named tuple
-    response = namedtuple('response', ' '.join([m['name'] for m in response_struct]))
+    response = namedtuple('response', 
+                          ' '.join([m['name'] for m in response_struct]))
     return response(*response_tuple)
   
   def unpack_request(self, request_raw):
-    """"""
+    """Return an unpacked named tuple representation of a client request."""
     if not len(request_raw): return
     
+    # Unpack the header to find the request ID
     format = '>HH' + (str(len(request_raw) - 4) + 's')
-    header = struct.unpack(format, request_raw)
-    
+    header = struct.unpack(format, request_raw)  
     streamid = header[0]
     requestid = header[1]
     
@@ -159,6 +158,7 @@ class MessageHelper:
       request_struct += get_struct('Client' + request_type_2[4:].title()  
                                    + 'Request')
   
+    # Build the complete format string
     format = '>'
     for member in request_struct:
       if member.has_key('size'):
@@ -169,16 +169,18 @@ class MessageHelper:
           format += str(member['size']) + member['type']
       else: 
         format += member['type']
-        
+    
+    # Unpack to a regular tuple
     request_tuple = struct.unpack(format, request_raw)
     
+    # Convert to named tuple
     request_struct.insert(0, {'name': 'type'})
     if requestid == XProtocol.XRequestTypes.handshake:
       type = 'handshake'
     else:
       type = get_requestid(requestid)
     
-    # Convert to named tuple
-    request = namedtuple('request', ' '.join([m['name'] for m in request_struct]))
+    request = namedtuple('request', 
+                         ' '.join([m['name'] for m in request_struct]))
     return request(type, *request_tuple) 
       

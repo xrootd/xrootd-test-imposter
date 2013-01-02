@@ -33,8 +33,7 @@ def flatten(*args):
       yield x
       
 def format_length(format):
-  """Return the length in bytes of the given struct
-  format string."""
+  """Return the length in bytes of the given struct format string."""
   mapping = {'c': 1, 's': 1, 'B': 1, 'H': 2, 'l': 4, 'q': 8}
   groups = re.findall('\d*[csBHlq]', format)
   length = 0
@@ -47,6 +46,7 @@ def format_length(format):
   return length 
     
 def struct_format(struct):
+  """Return the complete format string for the given struct."""
   format = '>'
 
   for member in struct:
@@ -61,6 +61,7 @@ def struct_format(struct):
   return format
 
 def gen_sessid():
+  """Return a random session ID of length 16"""
   return str(random.randrange(9999999999999999)).zfill(16)
 
 def get_struct(name):

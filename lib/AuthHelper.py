@@ -36,7 +36,7 @@ class AuthHelper:
   def build_request(self, authtoken=None, contcred=None, streamid=None, 
                     requestid=None, reserved=None, credtype=None, dlen=None, 
                     cred=None):
-    """"""
+    """Return a packed kXR_auth request."""
     
     if not authtoken and not contcred:
       print "[!] Can't build kXR_auth request: no auth token or continuation \
@@ -61,7 +61,7 @@ class AuthHelper:
     return self.mh.build_message(request_struct, params)
   
   def build_response(self, cred=None, streamid=None, status=None, dlen=None):
-    """"""
+    """Return a packed kXR_auth response."""
     if cred:
       self.auth(cred)
     
@@ -74,7 +74,9 @@ class AuthHelper:
     return self.mh.build_message(response_struct, params)
   
   def getcredentials(self, authtoken, contcred, seclib, sockfd):
-    """"""
+    """Return opaque credentials after acquiring them from the xrootd
+    security interface. These can be either the initial credentials or
+    some continuation credentials."""
     try:
       credname, creds = get_credentials(authtoken, contcred, seclib, sockfd)
     except IOError, e:
@@ -83,7 +85,7 @@ class AuthHelper:
     return credname, creds, len(creds)
   
   def getsectoken(self):
-    """"""
+    """Return the security token to be sent in a kXR_login response."""
     try:
       token = get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
                      self.context['seclib'])
@@ -94,7 +96,7 @@ class AuthHelper:
     return token
   
   def auth(self, cred):
-    """"""
+    """Authenticate the given opaque credentials."""
     try:
       contparams = authenticate(cred, self.context['seclib'],
                    'sec.protocol ' + self.context['sec.protocol'] + '\n',

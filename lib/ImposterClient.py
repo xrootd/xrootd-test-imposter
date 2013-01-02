@@ -19,6 +19,7 @@
 import sys
 import struct
 import socket
+import os
 
 import XProtocol
 import MessageHelper
@@ -146,7 +147,8 @@ class ImposterClient:
     
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
-     'requestid' : requestid  if requestid  else self.requestid,
+     'requestid' : requestid  if requestid  else XProtocol.XRequestTypes
+                                                 .kXR_login,
      'pid'       : pid        if pid        else os.getpid(),
      'username'  : username   if username   else ''.ljust(8, "\0"),
      'reserved'  : reserved   if reserved   else '\0',
