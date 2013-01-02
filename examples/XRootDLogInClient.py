@@ -27,13 +27,15 @@ class XRootDLogInClient:
   def __call__(self, context):
     client = ImposterClient(context)
     
-    client.do_full_handshake()
+    #sess_id = client.do_full_handshake()
+    #print '%r' % sess_id
     
-
-    stat_request = client.kXR_stat(path="/tmp")
-    client.send(stat_request)
+    #request = client.kXR_stat(path="/tmp")
+    request = client.kXR_bind()
+    
+    client.send(request)
     response_raw = client.receive()
-    response = client.unpack(response_raw, stat_request)
+    response = client.unpack(response_raw, request)
     print response
     
     

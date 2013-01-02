@@ -25,7 +25,7 @@ import XProtocol
 import MessageHelper
 import AuthHelper
 
-from Utils import get_struct, get_requestid
+from Utils import get_struct, get_requestid, gen_sessid
 
 
 class ImposterClient:
@@ -66,6 +66,7 @@ class ImposterClient:
     self.send(login_request)
     response_raw = self.receive()
     response = self.unpack(response_raw, login_request)
+    sessid = response.sessid
     print response
     
     # Check if we need to auth
@@ -87,6 +88,7 @@ class ImposterClient:
       
     if response.status == XProtocol.XResponseType.kXR_ok:
       print "++++++ logged in successfully"
+      return sessid
     else:
       print "++++++ login failed (%s): %s" % (response.status, 
                                               response.errmsg) 
@@ -103,7 +105,7 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params)
   
   def kXR_admin(self):
-    request_struct = get_struct('ClientQueryRequest')
+    raise NotImplementedError()
     
   def kXR_auth(self, **kwargs):
     """Return a packed representation of a kXR_auth request. The default 
@@ -111,32 +113,41 @@ class ImposterClient:
     auth = AuthHelper.AuthHelper(self.context)
     return auth.build_request(**kwargs)
     
-  def kXR_bind(self):
-    """"""
-    request_struct = get_struct('ClientBindRequest')
+  def kXR_bind(self, streamid=None, requestid=None, sessid=None, dlen=None):
+    """Return a packed representation of a kXR_bind request."""
+    request_struct = get_struct('ClientBindRequest');
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_bind'),
+     'sessid'    : sessid    if sessid     else gen_sessid(),
+     'dlen'      : dlen      if dlen       else 0}
+    
+    return self.mh.build_message(request_struct, params)   
   
-  def kXR_chmod(self):
-    """"""
+  def kXR_chmod(self, streamid=None, requestid=None, reserved=None, mode=None,
+                dlen=None, path=None):
+    """Return a packed representation of a kXR_chmod request."""
     request_struct = get_struct('ClientChmodRequest')
+    
   
   def kXR_close(self):
-    """"""
+    """Return a packed representation of a kXR_close request."""
     request_struct = get_struct('ClientCloseRequest')
   
   def kXR_dirlist(self):
-    """"""
+    """Return a packed representation of a kXR_dirlist request."""
     request_struct = get_struct('ClientDirlistRequest')
     
   def kXR_endsess(self):
-    """"""
+    """Return a packed representation of a kXR_endsess request."""
     request_struct = get_struct('ClientEndsessRequest')
   
   def kXR_getfile(self):
-    """"""
+    """Return a packed representation of a kXR_getfile request."""
     request_struct = get_struct('ClientGetfileRequest')
     
   def kXR_locate(self):
-    """"""
+    """Return a packed representation of a kXR_locate request."""
     request_struct = get_struct('ClientLocateRequest')
     
   def kXR_login(self, streamid=None, requestid=None, pid=None, username=None,
@@ -162,15 +173,15 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params)
   
   def kXR_mkdir(self):
-    """"""
+    """Return a packed representation of a kXR_mkdir request."""
     request_struct = get_struct('ClientMkdirRequest')
   
   def kXR_mv(self):
-    """"""
+    """Return a packed representation of a kXR_mv request."""
     request_struct = get_struct('ClientMvRequest')
   
   def kXR_open(self):
-    """"""
+    """Return a packed representation of a kXR_open request."""
     request_struct = get_struct('ClientOpenRequest')   
     
   def kXR_ping(self, streamid=None, requestid=None, reserved=None, dlen=None):
@@ -186,7 +197,7 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params)   
   
   def kXR_prepare(self):
-    """"""
+    """Return a packed representation of a kXR_prepare request."""
     request_struct = get_struct('ClientPrepareRequest')
  
   def kXR_protocol(self, streamid=None, requestid=None, clientpv=None,
@@ -205,31 +216,31 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params)
   
   def kXR_putfile(self):
-    """"""
+    """Return a packed representation of a kXR_putfile request."""
     request_struct = get_struct('ClientPutfileRequest')
     
   def kXR_query(self):
-    """"""
+    """Return a packed representation of a kXR_query request."""
     request_struct = get_struct('ClientQueryRequest')
   
   def kXR_read(self):
-    """"""
+    """Return a packed representation of a kXR_read request."""
     request_struct = get_struct('ClientReadRequest')
     
   def kXR_readv(self):
-    """"""
+    """Return a packed representation of a kXR_readv request."""
     request_struct = get_struct('ClientReadVRequest')
   
   def kXR_rm(self):
-    """"""
+    """Return a packed representation of a kXR_rm request."""
     request_struct = get_struct('ClientRmRequest')
   
   def kXR_rmdir(self):
-    """"""
+    """Return a packed representation of a kXR_rmdir request."""
     request_struct = get_struct('ClientRmdirRequest')
     
   def kXR_set(self):
-    """"""
+    """Return a packed representation of a kXR_set request."""
     request_struct = get_struct('ClientSetRequest')
   
   def kXR_stat(self, streamid=None, requestid=None, options=None, reserved=None,
@@ -252,23 +263,23 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params)
   
   def kXR_statx(self):
-    """"""
+    """Return a packed representation of a kXR_statx request."""
     request_struct = get_struct('ClientStatxRequest')
     
   def kXR_sync(self):
-    """"""
+    """Return a packed representation of a kXR_sync request."""
     request_struct = get_struct('ClientSyncRequest')
     
   def kXR_truncate(self):
-    """"""
+    """Return a packed representation of a kXR_truncate request."""
     request_struct = get_struct('ClientTruncateRequest')
   
   def kXR_verifyw(self):
-    """"""
+    """Return a packed representation of a kXR_verifyw request."""
     request_struct = get_struct('ClientVerifywRequest')
     
   def kXR_write(self):
-    """"""
+    """Return a packed representation of a kXR_write request."""
     request_struct = get_struct('ClientWriteRequest')
 
 
