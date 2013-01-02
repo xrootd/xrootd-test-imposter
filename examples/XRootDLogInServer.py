@@ -33,7 +33,8 @@ class XRootDLogInServer:
       
       if request.type == 'kXR_stat':
         print request
-        response = server.stat(id=0, size=0, flags=0, modtime=0)
+        #response = server.stat(id=0, size=0, flags=0, modtime=0)
+        response = server.kXR_error(errmsg='foobar')
         server.send(response)
         
     server.close()

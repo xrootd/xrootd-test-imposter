@@ -54,7 +54,8 @@ class ImposterServer:
     return self.mh.unpack_request(request_raw)
     
   def do_full_handshake(self, verify_auth=False):
-    """Perform handshake/protocol/login/auth sequence with default values.
+    """Perform handshake/protocol/login/auth/authmore sequence with default 
+    values.
     
     If verify_auth is true, the credentials supplied by the client in the
     kXR_auth request will be properly authenticated, otherwise they will not
@@ -178,9 +179,22 @@ class ImposterServer:
      'data'    : data}
     return self.mh.build_message(response_struct, params)
 
-  def kXR_error(self):
-    """"""
-    pass
+  def kXR_error(self, streamid=None, status=None, dlen=None, errnum=None,
+                errmsg=None):
+    """Return a packed representation of a kXR_error response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Error')
+    
+    if not errmsg: errmsg = ''
+    if not errnum: errnum = XProtocol.XErrorCode.kXR_ArgInvalid
+    
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_error'),
+     'dlen'    : dlen      if dlen     else len(errmsg + str(errnum)),
+     'errnum'  : errnum,
+     'errmsg'  : errmsg}
+    return self.mh.build_message(response_struct, params)
 
   def kXR_ok(self, streamid=None, status=None, dlen=None):
     """Return a packed kXR_ok response."""
