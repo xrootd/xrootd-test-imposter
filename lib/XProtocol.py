@@ -292,7 +292,8 @@ ClientChmodRequest = [
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 14},
   {'name': 'mode', 'type': 'H'},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientCloseRequest = [
@@ -309,7 +310,8 @@ ClientDirlistRequest = [
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 15},
   {'name': 'options', 'type': 'c', 'size': 1},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientEndsessRequest = [
@@ -333,7 +335,8 @@ ClientLocateRequest = [
   {'name': 'requestid', 'type': 'H'},
   {'name': 'options', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 14},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientLoginRequest = [
@@ -354,14 +357,16 @@ ClientMkdirRequest = [
   {'name': 'options', 'type': 'c', 'size': 1},
   {'name': 'reserved', 'type': 's', 'size': 13},
   {'name': 'mode', 'type': 'H'},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientMvRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientOpenRequest = [
@@ -370,7 +375,8 @@ ClientOpenRequest = [
   {'name': 'mode', 'type': 'H'},
   {'name': 'options', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientPingRequest = [
@@ -611,6 +617,14 @@ ServerResponseBody_Authmore = [
 ]
 
 ServerResponseBody_Buffer = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
+ServerResponseBody_Dirlist = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
+ServerResponseBody_Locate = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 

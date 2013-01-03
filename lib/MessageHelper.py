@@ -127,9 +127,11 @@ class MessageHelper:
     # Unpack to regular tuple
     response_tuple = struct.unpack(format, response_raw)  
     # Convert to named tuple
+    response_struct.insert(0, {'name': 'type'})
+    type = get_responseid(status)
     response = namedtuple('response', 
                           ' '.join([m['name'] for m in response_struct]))
-    return response(*response_tuple)
+    return response(type, *response_tuple)
   
   def unpack_request(self, request_raw):
     """Return an unpacked named tuple representation of a client request."""

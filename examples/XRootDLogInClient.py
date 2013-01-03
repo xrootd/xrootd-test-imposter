@@ -17,6 +17,7 @@
 #-------------------------------------------------------------------------------
 
 from lib.ImposterClient import ImposterClient
+from lib.XProtocol import XOpenRequestMode, XOpenRequestOption
 
 class XRootDLogInClient:
   @classmethod
@@ -27,11 +28,17 @@ class XRootDLogInClient:
   def __call__(self, context):
     client = ImposterClient(context)
     
-    #sess_id = client.do_full_handshake()
-    #print '%r' % sess_id
+    sess_id = client.do_full_handshake()
     
     #request = client.kXR_stat(path="/tmp")
-    request = client.kXR_bind()
+    #request = client.kXR_bind()
+    #request = client.kXR_chmod()
+    #request = client.kXR_dirlist(path='/tmp')
+    #request = client.kXR_endsess()
+    #request = client.kXR_locate(path='/tmp/testfile')
+    #request = client.kXR_mkdir(path='/tmp/testdir2')
+    #request = client.kXR_mv(path='/tmp/testdir2 /tmp/testdir3')
+    request = client.kXR_open(path='/tmp/testfile')
     
     client.send(request)
     response_raw = client.receive()
