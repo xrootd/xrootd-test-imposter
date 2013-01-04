@@ -520,13 +520,13 @@ ClientRequestHdr = [
 
 
 readahead_list = [
-  {'name': 'fhandle', 'type': 'c', 'size': 4},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'offset', 'type': 'q'}
+  {'name': 'fhandle2', 'type': 's', 'size': 4},
+  {'name': 'rlen2', 'type': 'l'},
+  {'name': 'roffset2', 'type': 'q'}
 ]
 
 read_args = [
-  {'name': 'pathid', 'type': 'c'},
+  {'name': 'pathid', 'type': 's'},
   {'name': 'reserved', 'type': 's', 'size': 7}
 ]
 
@@ -636,6 +636,10 @@ ServerResponseBody_Prepare = [
 ]
 
 ServerResponseBody_Query = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
+ServerResponseBody_Read = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 

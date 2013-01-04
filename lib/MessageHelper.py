@@ -79,8 +79,8 @@ class MessageHelper:
   def unpack_response(self, response_raw, request_raw):
     """Return an unpacked named tuple representation of a server response."""    
     # Unpack the request that generated this response for reference
-    request = self.unpack_request(request_raw)
-    requestid = get_requestid(request.type)
+    requestid = self.unpack_request_header(request_raw)[1]
+    request_type = get_requestid(requestid)
     
     # Unpack the response header to find the status and data length
     header_struct = get_struct('ServerResponseHeader')
@@ -102,7 +102,7 @@ class MessageHelper:
                                + get_responseid(status)[4:].title())
     else:
       body_struct = get_struct('ServerResponseBody_' \
-                               + request.type[4:].title())
+                               + request_type[4:].title())
       
     if not body_struct: body_struct = list()
     
@@ -138,10 +138,7 @@ class MessageHelper:
     if not len(request_raw): return
     
     # Unpack the header to find the request ID
-    format = '>HH' + (str(len(request_raw) - 4) + 's')
-    header = struct.unpack(format, request_raw)  
-    streamid = header[0]
-    requestid = header[1]
+    streamid, requestid = self.unpack_request_header(request_raw)
     
     # Check if this is a handshake request
     if requestid == XProtocol.XRequestTypes.handshake:
@@ -187,3 +184,8 @@ class MessageHelper:
                          ' '.join([m['name'] for m in request_struct]))
     return request(type, *request_tuple) 
       
+  def unpack_request_header(self, request_raw):
+    """"""
+    format = '>HH' + (str(len(request_raw) - 4) + 's')
+    header = struct.unpack(format, request_raw)  
+    return header[0], header[1]

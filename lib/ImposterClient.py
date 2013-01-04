@@ -47,7 +47,7 @@ class ImposterClient:
   def unpack(self, response_raw, request):
     """Return an unpacked named tuple representation of a server response."""
     # Check for special cases
-    if self.mh.unpack_request(request).type == 'kXR_open':
+    if get_requestid(self.mh.unpack_request_header(request)[1]) == 'kXR_open':
       open_helper = OpenHelper.OpenHelper(self.context)
       return open_helper.unpack_response(response_raw, request)
     else:
@@ -319,9 +319,37 @@ class ImposterClient:
      'args'      : args}    
     return self.mh.build_message(request_struct, params)
   
-  def kXR_read(self):
-    """Return a packed representation of a kXR_read request."""
+  def kXR_read(self, streamid=None, requestid=None, fhandle=None, offset=None,
+               rlen=None, dlen=None, pathid=None, reserved=None, 
+               readahead=False,fhandle2=None, rlen2=None, roffset2=None):
+    """Return a packed representation of a kXR_read request. Pass 
+    readahead=True to enable pre-read."""
+    read_args = get_struct('read_args')
+    params = \
+    {'pathid'    : pathid     if pathid     else '',
+     'reserved'  : reserved   if reserved   else (7 * '\0')}
+    read_args = self.mh.build_message(read_args, params)
+    
+    if readahead:
+      readahead_list = get_struct('readahead_list')
+      params = \
+      {'fhandle2': fhandle2   if fhandle2   else (4 * '\0'),
+       'rlen2'   : rlen2      if rlen2      else 0,
+       'roffset2': roffset2   if roffset2   else 0}
+      readahead_list = self.mh.build_message(readahead_list, params)
+    else: readahead_list = ''
+    
     request_struct = get_struct('ClientReadRequest')
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_read'),
+     'fhandle'   : fhandle    if fhandle    else (4 * "\0"),
+     'offset'    : offset     if offset     else 0,
+     'rlen'      : rlen       if rlen       else 0,
+     'dlen'      : dlen       if dlen       else len(read_args
+                                                     + readahead_list)}
+    return self.mh.build_message(request_struct, params) \
+           + read_args + readahead_list
     
   def kXR_readv(self):
     """Return a packed representation of a kXR_readv request."""
