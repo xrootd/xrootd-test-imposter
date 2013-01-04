@@ -203,18 +203,18 @@ class ImposterClient:
     """Return a packed representation of a kXR_login request."""
     request_struct = get_struct('ClientLoginRequest')
     params = \
-    {'streamid'  : streamid   if streamid   else self.context['streamid'],
-     'requestid' : requestid  if requestid  else get_requestid('kXR_login'),
-     'pid'       : pid        if pid        else os.getpid(),
-     'username'  : username   if username   else ''.ljust(8, "\0"),
-     'reserved'  : reserved   if reserved   else '\0',
-     'zone'      : zone       if zone       else '\0',
-     'capver'    : capver     if capver     else chr(XProtocol.XLoginCapVer
-                                                     .kXR_asyncap \
-                                                     | XProtocol.XLoginVersion
-                                                     .kXR_ver003),
-     'role'      : role       if role       else '0',
-     'dlen'      : dlen       if dlen       else 0}   
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_login'),
+     'pid'       : pid       if pid        else os.getpid(),
+     'username'  : username  if username   else ''.ljust(8, "\0"),
+     'reserved'  : reserved  if reserved   else '\0',
+     'zone'      : zone      if zone       else '\0',
+     'capver'    : capver    if capver     else chr(XProtocol.XLoginCapVer
+                                                    .kXR_asyncap \
+                                                    | XProtocol.XLoginVersion
+                                                    .kXR_ver003),
+     'role'      : role      if role       else '0',
+     'dlen'      : dlen      if dlen       else 0}   
     return self.mh.build_message(request_struct, params)
   
   def kXR_mkdir(self, streamid=None, requestid=None, options=None, 
@@ -291,12 +291,12 @@ class ImposterClient:
     """Return a packed representation of a kXR_protocol request."""
     request_struct = get_struct('ClientProtocolRequest') 
     params = \
-    {'streamid'  : streamid   if streamid   else self.context['streamid'],
-     'requestid' : requestid  if requestid  else get_requestid('kXR_protocol'),
-     'clientpv'  : clientpv   if clientpv   else XProtocol.XLoginVersion
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_protocol'),
+     'clientpv'  : clientpv  if clientpv   else XProtocol.XLoginVersion
                                                  .kXR_ver003,
-     'reserved'  : reserved   if reserved   else (12 * "\0"),
-     'dlen'      : dlen       if dlen       else 0}   
+     'reserved'  : reserved  if reserved   else (12 * "\0"),
+     'dlen'      : dlen      if dlen       else 0}   
     return self.mh.build_message(request_struct, params)
   
   def kXR_putfile(self):
@@ -321,7 +321,7 @@ class ImposterClient:
   
   def kXR_read(self, streamid=None, requestid=None, fhandle=None, offset=None,
                rlen=None, dlen=None, pathid=None, reserved=None, 
-               readahead=False,fhandle2=None, rlen2=None, roffset2=None):
+               readahead=False, fhandle2=None, rlen2=None, roffset2=None):
     """Return a packed representation of a kXR_read request. Pass 
     readahead=True to enable pre-read."""
     read_args = get_struct('read_args')
@@ -351,9 +351,28 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params) \
            + read_args + readahead_list
     
-  def kXR_readv(self):
-    """Return a packed representation of a kXR_readv request."""
+  def kXR_readv(self, streamid=None, requestid=None, reserved=None, pathid=None,
+               dlen=None, **read_lists):
+    """Return a packed representation of a kXR_readv request. You can pass in
+    multiple read_lists with arbitrary keyword names, but they must have the
+    format (fhandle, rlen, offset)."""
+    all_read_lists = ''
+    for read_list in read_lists.itervalues():
+      read_struct = get_struct('readahead_list')
+      params = \
+      {'fhandle2': read_list[0] if read_list[0] else (4 * '\0'),
+       'rlen2'   : read_list[1] if read_list[1] else 0,
+       'roffset2': read_list[2] if read_list[2] else 0}
+      all_read_lists += self.mh.build_message(read_struct, params)
+      
     request_struct = get_struct('ClientReadVRequest')
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_readv'),
+     'reserved'  : reserved   if reserved   else (15 * "\0"),
+     'pathid'    : pathid     if pathid     else '0',
+     'dlen'      : dlen       if dlen       else len(all_read_lists)}
+    return self.mh.build_message(request_struct, params) + all_read_lists
   
   def kXR_rm(self):
     """Return a packed representation of a kXR_rm request."""

@@ -643,6 +643,10 @@ ServerResponseBody_Read = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
+ServerResponseBody_Readv = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
 ServerResponseBody_Stat = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]

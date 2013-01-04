@@ -48,8 +48,8 @@ class XRootDLogInClient:
     print response
     
     #request = client.kXR_close(fhandle=response.fhandle)
-    request = client.kXR_read(fhandle=response.fhandle, rlen=1024, readahead=True,
-                              fhandle2=response.fhandle, rlen2=1024, roffset2=1024)
+    request = client.kXR_readv(read_list1=(response.fhandle, 1024, 0),
+                               read_list2=(response.fhandle, 1024, 1024))
     
     client.send(request)
     response_raw = client.receive()
