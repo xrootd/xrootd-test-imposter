@@ -417,11 +417,12 @@ ClientPutfileRequest = [
 ClientQueryRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
-  {'name': 'infotype', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 2},
+  {'name': 'reqcode', 'type': 'H'},
+  {'name': 'reserved1', 'type': 's', 'size': 2},
   {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'reserved', 'type': 's', 'size': 8},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'reserved2', 'type': 's', 'size': 8},
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'args', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientReadRequest = [
@@ -631,6 +632,10 @@ ServerResponseBody_Locate = [
 ]
 
 ServerResponseBody_Prepare = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
+ServerResponseBody_Query = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 

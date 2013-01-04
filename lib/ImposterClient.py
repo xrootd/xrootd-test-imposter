@@ -302,9 +302,22 @@ class ImposterClient:
   def kXR_putfile(self):
     raise NotImplementedError()
     
-  def kXR_query(self):
+  def kXR_query(self, streamid=None, requestid=None, reqcode=None, 
+                reserved1=None, fhandle=None, reserved2=None, dlen=None,
+                args=None):
     """Return a packed representation of a kXR_query request."""
     request_struct = get_struct('ClientQueryRequest')
+    if not args: args = ''
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_query'),
+     'reqcode'   : reqcode    if reqcode    else 0,
+     'reserved1' : reserved1  if reserved1  else (2 * "\0"),
+     'fhandle'   : fhandle    if fhandle    else (4 * "\0"),
+     'reserved2' : reserved2  if reserved2  else (8 * "\0"),
+     'dlen'      : dlen       if dlen       else len(args),
+     'args'      : args}    
+    return self.mh.build_message(request_struct, params)
   
   def kXR_read(self):
     """Return a packed representation of a kXR_read request."""

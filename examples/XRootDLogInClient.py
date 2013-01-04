@@ -17,7 +17,7 @@
 #-------------------------------------------------------------------------------
 
 from lib.ImposterClient import ImposterClient
-from lib.XProtocol import XOpenRequestMode, XOpenRequestOption
+from lib.XProtocol import XOpenRequestMode, XOpenRequestOption, XQueryType
 
 class XRootDLogInClient:
   @classmethod
@@ -39,7 +39,8 @@ class XRootDLogInClient:
     #request = client.kXR_mkdir(path='/tmp/testdir2')
     #request = client.kXR_mv(path='/tmp/testdir2 /tmp/testdir3')
     #request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_retstat)
-    request = client.kXR_prepare(plist='/tmp/testfile')
+    #request = client.kXR_prepare(plist='/tmp/testfile')
+    request = client.kXR_query(reqcode=XQueryType.kXR_Qspace, args='/tmp')
     
     client.send(request)
     response_raw = client.receive()
