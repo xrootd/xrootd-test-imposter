@@ -270,9 +270,21 @@ class ImposterClient:
      'dlen'      : dlen      if dlen       else 0}   
     return self.mh.build_message(request_struct, params)   
   
-  def kXR_prepare(self):
+  def kXR_prepare(self, streamid=None, requestid=None, options=None, prty=None,
+                  port=None, reserved=None, dlen=None, plist=None):
     """Return a packed representation of a kXR_prepare request."""
     request_struct = get_struct('ClientPrepareRequest')
+    if not plist: plist = ''
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_prepare'),
+     'options'   : options   if options    else '\0',
+     'prty'      : prty      if prty       else '\0',
+     'port'      : port      if port       else 0,
+     'reserved'  : reserved  if reserved   else (12 * "\0"),
+     'dlen'      : dlen      if dlen       else len(plist),
+     'plist'     : plist}   
+    return self.mh.build_message(request_struct, params)
  
   def kXR_protocol(self, streamid=None, requestid=None, clientpv=None,
                    reserved=None, dlen=None):
@@ -288,8 +300,7 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params)
   
   def kXR_putfile(self):
-    """Return a packed representation of a kXR_putfile request."""
-    request_struct = get_struct('ClientPutfileRequest')
+    raise NotImplementedError()
     
   def kXR_query(self):
     """Return a packed representation of a kXR_query request."""

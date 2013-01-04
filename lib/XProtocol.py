@@ -401,7 +401,8 @@ ClientPrepareRequest = [
   {'name': 'prty', 'type': 'c'},
   {'name': 'port', 'type': 'H'}, # 2.9.9 or higher
   {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'plist', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientPutfileRequest = [
@@ -626,6 +627,10 @@ ServerResponseBody_Dirlist = [
 ]
 
 ServerResponseBody_Locate = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
+ServerResponseBody_Prepare = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
