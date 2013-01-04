@@ -24,6 +24,7 @@ import os
 import XProtocol
 import MessageHelper
 import AuthHelper
+import OpenHelper
 
 from Utils import get_struct, get_requestid, gen_sessid
 
@@ -45,7 +46,12 @@ class ImposterClient:
   
   def unpack(self, response_raw, request):
     """Return an unpacked named tuple representation of a server response."""
-    return self.mh.unpack_response(response_raw, request)
+    # Check for special cases
+    if self.mh.unpack_request(request).type == 'kXR_open':
+      open_helper = OpenHelper.OpenHelper(self.context)
+      return open_helper.unpack_response(response_raw, request)
+    else:
+      return self.mh.unpack_response(response_raw, request)
     
   def do_full_handshake(self):
     """Perform handshake/protocol/login/auth/authmore sequence with default 

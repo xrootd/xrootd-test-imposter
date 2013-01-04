@@ -38,7 +38,7 @@ class XRootDLogInClient:
     #request = client.kXR_locate(path='/tmp/testfile')
     #request = client.kXR_mkdir(path='/tmp/testdir2')
     #request = client.kXR_mv(path='/tmp/testdir2 /tmp/testdir3')
-    request = client.kXR_open(path='/tmp/testfile')
+    request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_compress)
     
     client.send(request)
     response_raw = client.receive()

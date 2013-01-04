@@ -552,6 +552,7 @@ ServerResponseBody_Open = [
   {'name': 'fhandle', 'type': 's', 'size': 4},
   {'name': 'cpsize', 'type': 'l'}, # cpsize & cptype returned if kXR_compress *or*
   {'name': 'cptype', 'type': 's', 'size': 4}, # kXR_retstat is specified
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'offset': 12}
 ] # info will follow if kXR_retstat is specified
 
 ServerResponseBody_Protocol = [

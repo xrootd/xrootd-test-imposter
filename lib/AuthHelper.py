@@ -28,6 +28,9 @@ from authbind import get_credentials, authenticate, get_parms
 from Utils import get_struct, get_requestid, get_responseid
 
 class AuthHelper:
+  """Class to aid sending/receiving xrootd authentication requests/responses,
+  generating security tokens/credentials and authenticating client 
+  credentials."""
   
   def __init__(self, context):
     self.context = context
