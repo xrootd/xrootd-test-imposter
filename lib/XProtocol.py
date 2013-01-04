@@ -446,14 +446,16 @@ ClientRmRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientRmdirRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientSetRequest = [

@@ -374,13 +374,31 @@ class ImposterClient:
      'dlen'      : dlen       if dlen       else len(all_read_lists)}
     return self.mh.build_message(request_struct, params) + all_read_lists
   
-  def kXR_rm(self):
+  def kXR_rm(self, streamid=None, requestid=None, reserved=None, dlen=None, 
+             path=None):
     """Return a packed representation of a kXR_rm request."""
     request_struct = get_struct('ClientRmRequest')
+    if not path: path = ''
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_rm'),
+     'reserved'  : reserved  if reserved   else (16 * '\0'),
+     'dlen'      : dlen      if dlen       else len(path),
+     'path'      : path}
+    return self.mh.build_message(request_struct, params)
   
-  def kXR_rmdir(self):
+  def kXR_rmdir(self, streamid=None, requestid=None, reserved=None, dlen=None, 
+               path=None):
     """Return a packed representation of a kXR_rmdir request."""
     request_struct = get_struct('ClientRmdirRequest')
+    if not path: path = ''
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_rmdir'),
+     'reserved'  : reserved  if reserved   else (16 * '\0'),
+     'dlen'      : dlen      if dlen       else len(path),
+     'path'      : path}
+    return self.mh.build_message(request_struct, params)
     
   def kXR_set(self):
     """Return a packed representation of a kXR_set request."""
@@ -388,10 +406,9 @@ class ImposterClient:
   
   def kXR_stat(self, streamid=None, requestid=None, options=None, reserved=None,
                fhandle=None, dlen=None, path=None):
-    """Return a packed representation of a kXR_stat request. The default 
-    request values can be individually modified by the optional keyword args."""
+    """Return a packed representation of a kXR_stat request."""
     request_struct = get_struct('ClientStatRequest')   
-    if not path: path = "/tmp"  
+    if not path: path = ''
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
      'requestid' : requestid  if requestid  else get_requestid('kXR_stat'),

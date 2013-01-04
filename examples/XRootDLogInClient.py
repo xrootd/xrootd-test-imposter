@@ -38,9 +38,11 @@ class XRootDLogInClient:
     #request = client.kXR_locate(path='/tmp/testfile')
     #request = client.kXR_mkdir(path='/tmp/testdir2')
     #request = client.kXR_mv(path='/tmp/testdir2 /tmp/testdir3')
-    request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_retstat)
+    #request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_retstat)
     #request = client.kXR_prepare(plist='/tmp/testfile')
     #request = client.kXR_query(reqcode=XQueryType.kXR_Qspace, args='/tmp')
+    #request = client.kXR_rm(path='/tmp/testdir')
+    request = client.kXR_rmdir(path='/tmp/testdir3')
     
     client.send(request)
     response_raw = client.receive()
@@ -48,13 +50,13 @@ class XRootDLogInClient:
     print response
     
     #request = client.kXR_close(fhandle=response.fhandle)
-    request = client.kXR_readv(read_list1=(response.fhandle, 1024, 0),
-                               read_list2=(response.fhandle, 1024, 1024))
-    
-    client.send(request)
-    response_raw = client.receive()
-    response = client.unpack(response_raw, request)
-    print response
+    #request = client.kXR_readv(read_list1=(response.fhandle, 1024, 0),
+#                               read_list2=(response.fhandle, 1024, 1024))
+#    
+#    client.send(request)
+#    response_raw = client.receive()
+#    response = client.unpack(response_raw, request)
+#    print response
     
     
     
