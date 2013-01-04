@@ -38,12 +38,20 @@ class XRootDLogInClient:
     #request = client.kXR_locate(path='/tmp/testfile')
     #request = client.kXR_mkdir(path='/tmp/testdir2')
     #request = client.kXR_mv(path='/tmp/testdir2 /tmp/testdir3')
-    request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_compress)
+    request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_retstat)
     
     client.send(request)
     response_raw = client.receive()
     response = client.unpack(response_raw, request)
     print response
+    
+    request = client.kXR_close(fhandle=response.fhandle)
+    
+    client.send(request)
+    response_raw = client.receive()
+    response = client.unpack(response_raw, request)
+    print response
+    
     
     
     

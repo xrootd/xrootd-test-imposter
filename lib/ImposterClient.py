@@ -143,9 +143,18 @@ class ImposterClient:
      'path'      : path}
     return self.mh.build_message(request_struct, params) 
   
-  def kXR_close(self):
+  def kXR_close(self, streamid=None, requestid=None, fhandle=None, fsize=None,
+                reserved=None, dlen=None):
     """Return a packed representation of a kXR_close request."""
     request_struct = get_struct('ClientCloseRequest')
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_close'),
+     'fhandle'   : fhandle   if fhandle    else (4 * '\0'),
+     'fsize'     : fsize     if fsize      else 0,
+     'reserved'  : reserved  if reserved   else (4 * '\0'),
+     'dlen'      : dlen      if dlen       else 0}
+    return self.mh.build_message(request_struct, params)
   
   def kXR_dirlist(self, streamid=None, requestid=None, reserved=None, 
                   options=None, dlen=None, path=None):
