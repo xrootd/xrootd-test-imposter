@@ -434,9 +434,17 @@ class ImposterClient:
     if not requestid: requestid = get_requestid('kXR_statx')
     return self.kXR_stat(streamid=streamid, requestid=requestid, path=paths)
     
-  def kXR_sync(self):
+  def kXR_sync(self, streamid=None, requestid=None, fhandle=None, reserved=None,
+               dlen=None, path=None):
     """Return a packed representation of a kXR_sync request."""
     request_struct = get_struct('ClientSyncRequest')
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_sync'),
+     'fhandle'   : fhandle    if fhandle    else (4 * "\0"),
+     'reserved'  : reserved   if reserved   else (12 * "\0"),
+     'dlen'      : dlen       if dlen       else 0}
+    return self.mh.build_message(request_struct, params)
     
   def kXR_truncate(self):
     """Return a packed representation of a kXR_truncate request."""
