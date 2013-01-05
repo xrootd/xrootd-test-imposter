@@ -68,7 +68,7 @@ class ImposterClient:
     response = self.unpack(response_raw, protocol_request)
     print response
     
-    login_request = self.kXR_login()
+    login_request = self.kXR_login(username='imposter')
     self.send(login_request)
     response_raw = self.receive()
     response = self.unpack(response_raw, login_request)
@@ -400,9 +400,18 @@ class ImposterClient:
      'path'      : path}
     return self.mh.build_message(request_struct, params)
     
-  def kXR_set(self):
+  def kXR_set(self, streamid=None, requestid=None, reserved=None, dlen=None, 
+               data=None):
     """Return a packed representation of a kXR_set request."""
     request_struct = get_struct('ClientSetRequest')
+    if not data: data = ''
+    params = \
+    {'streamid'  : streamid  if streamid   else self.context['streamid'],
+     'requestid' : requestid if requestid  else get_requestid('kXR_set'),
+     'reserved'  : reserved  if reserved   else (16 * '\0'),
+     'dlen'      : dlen      if dlen       else len(data),
+     'data'      : data}
+    return self.mh.build_message(request_struct, params)
   
   def kXR_stat(self, streamid=None, requestid=None, options=None, reserved=None,
                fhandle=None, dlen=None, path=None):
@@ -412,16 +421,18 @@ class ImposterClient:
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
      'requestid' : requestid  if requestid  else get_requestid('kXR_stat'),
-     'options'   : options    if options    else '0',
+     'options'   : options    if options    else '\0',
      'reserved'  : reserved   if reserved   else (11 * "\0"),
      'fhandle'   : fhandle    if fhandle    else (4 * "\0"),
      'dlen'      : dlen       if dlen       else len(path),
-     'path'      : path}    
+     'path'      : path}
     return self.mh.build_message(request_struct, params)
   
-  def kXR_statx(self):
+  def kXR_statx(self, streamid=None, requestid=None, reserved=None, dlen=None, 
+                paths=None):
     """Return a packed representation of a kXR_statx request."""
-    request_struct = get_struct('ClientStatxRequest')
+    if not requestid: requestid = get_requestid('kXR_statx')
+    return self.kXR_stat(streamid=streamid, requestid=requestid, path=paths)
     
   def kXR_sync(self):
     """Return a packed representation of a kXR_sync request."""

@@ -462,7 +462,8 @@ ClientSetRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientStatRequest = [
@@ -649,7 +650,15 @@ ServerResponseBody_Readv = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
+ServerResponseBody_Set = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
 ServerResponseBody_Stat = [
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
+]
+
+ServerResponseBody_Statx = [
   {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 

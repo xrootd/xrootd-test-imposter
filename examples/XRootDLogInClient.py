@@ -30,7 +30,6 @@ class XRootDLogInClient:
     
     sess_id = client.do_full_handshake()
     
-    #request = client.kXR_stat(path="/tmp")
     #request = client.kXR_bind()
     #request = client.kXR_chmod()
     #request = client.kXR_dirlist(path='/tmp')
@@ -42,7 +41,10 @@ class XRootDLogInClient:
     #request = client.kXR_prepare(plist='/tmp/testfile')
     #request = client.kXR_query(reqcode=XQueryType.kXR_Qspace, args='/tmp')
     #request = client.kXR_rm(path='/tmp/testdir')
-    request = client.kXR_rmdir(path='/tmp/testdir3')
+    #request = client.kXR_rmdir(path='/tmp/testdir3')
+    #request = client.kXR_set(data='monitor on')
+    #request = client.kXR_stat(path="/tmp/testfile")
+    request = client.kXR_statx(paths="/tmp/testfile")
     
     client.send(request)
     response_raw = client.receive()
