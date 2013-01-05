@@ -46,12 +46,7 @@ class ImposterClient:
   
   def unpack(self, response_raw, request):
     """Return an unpacked named tuple representation of a server response."""
-    # Check for special cases
-    if get_requestid(self.mh.unpack_request_header(request)[1]) == 'kXR_open':
-      open_helper = OpenHelper.OpenHelper(self.context)
-      return open_helper.unpack_response(response_raw, request)
-    else:
-      return self.mh.unpack_response(response_raw, request)
+    return self.mh.unpack_response(response_raw, request)
     
   def do_full_handshake(self):
     """Perform handshake/protocol/login/auth/authmore sequence with default 
@@ -390,15 +385,8 @@ class ImposterClient:
   def kXR_rmdir(self, streamid=None, requestid=None, reserved=None, dlen=None, 
                path=None):
     """Return a packed representation of a kXR_rmdir request."""
-    request_struct = get_struct('ClientRmdirRequest')
-    if not path: path = ''
-    params = \
-    {'streamid'  : streamid  if streamid   else self.context['streamid'],
-     'requestid' : requestid if requestid  else get_requestid('kXR_rmdir'),
-     'reserved'  : reserved  if reserved   else (16 * '\0'),
-     'dlen'      : dlen      if dlen       else len(path),
-     'path'      : path}
-    return self.mh.build_message(request_struct, params)
+    if not requestid: requestid = get_requestid('kXR_rmdir')
+    return self.kXR_rm(streamid, requestid, reserved, dlen, path)
     
   def kXR_set(self, streamid=None, requestid=None, reserved=None, dlen=None, 
                data=None):
@@ -432,7 +420,7 @@ class ImposterClient:
                 paths=None):
     """Return a packed representation of a kXR_statx request."""
     if not requestid: requestid = get_requestid('kXR_statx')
-    return self.kXR_stat(streamid=streamid, requestid=requestid, path=paths)
+    return self.kXR_stat(streamid, requestid, None, reserved, None, dlen, path)
     
   def kXR_sync(self, streamid=None, requestid=None, fhandle=None, reserved=None,
                dlen=None, path=None):
@@ -461,13 +449,30 @@ class ImposterClient:
      'path'      : path}
     return self.mh.build_message(request_struct, params)
   
-  def kXR_verifyw(self):
+  def kXR_verifyw(self, streamid=None, requestid=None, fhandle=None, 
+                   offset=None, pathid=None, vertype=None, reserved=None,
+                   dlen=None, data=None):
     """Return a packed representation of a kXR_verifyw request."""
     request_struct = get_struct('ClientVerifywRequest')
+    if not data: data = ''
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_verifyw'),
+     'fhandle'   : fhandle    if fhandle    else (4 * "\0"),
+     'offset'    : offset     if offset     else 0,
+     'pathid'    : pathid     if pathid     else '\0',
+     'vertype'   : vertype    if vertype    else '\0',
+     'reserved'  : reserved   if reserved   else (2 * "\0"),
+     'dlen'      : dlen       if dlen       else len(data),
+     'data'      : data}
+    return self.mh.build_message(request_struct, params)
     
-  def kXR_write(self):
+  def kXR_write(self, streamid=None, requestid=None, fhandle=None, offset=None, 
+                pathid=None, reserved=None, dlen=None, data=None):
     """Return a packed representation of a kXR_write request."""
-    request_struct = get_struct('ClientWriteRequest')
+    if not requestid: requestid = get_requestid('kXR_write')
+    return self.kXR_verifyw(streamid, requestid, fhandle, offset, pathid, None, 
+                            reserved, dlen, data)
 
 
           

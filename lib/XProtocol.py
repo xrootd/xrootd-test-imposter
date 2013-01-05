@@ -501,7 +501,8 @@ ClientWriteRequest = [
   {'name': 'offset', 'type': 'q'},
   {'name': 'pathid', 'type': 'c'},
   {'name': 'reserved', 'type': 's', 'size': 3},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'}, # Includes crc length
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientVerifywRequest = [
@@ -512,7 +513,8 @@ ClientVerifywRequest = [
   {'name': 'pathid', 'type': 'c'},
   {'name': 'vertype', 'type': 'c'}, # One of XVerifyType
   {'name': 'reserved', 'type': 's', 'size': 2},
-  {'name': 'dlen', 'type': 'l'} # Includes crc length
+  {'name': 'dlen', 'type': 'l'}, # Includes crc length
+  {'name': 'data', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientRequestHdr = [
