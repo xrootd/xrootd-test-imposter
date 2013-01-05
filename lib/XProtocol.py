@@ -488,9 +488,10 @@ ClientTruncateRequest = [
   {'name': 'streamid', 'type': 'H'},
   {'name': 'requestid', 'type': 'H'},
   {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'offset', 'type': 'q'},
+  {'name': 'size', 'type': 'q'},
   {'name': 'reserved', 'type': 's', 'size': 4},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'dlen', 'type': 'l'},
+  {'name': 'path', 'type': 's', 'size': 'dlen'}
 ]
 
 ClientWriteRequest = [

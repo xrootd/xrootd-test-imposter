@@ -446,9 +446,20 @@ class ImposterClient:
      'dlen'      : dlen       if dlen       else 0}
     return self.mh.build_message(request_struct, params)
     
-  def kXR_truncate(self):
+  def kXR_truncate(self, streamid=None, requestid=None, fhandle=None, 
+                   size=None, reserved=None, dlen=None, path=None):
     """Return a packed representation of a kXR_truncate request."""
     request_struct = get_struct('ClientTruncateRequest')
+    if not path: path = ''
+    params = \
+    {'streamid'  : streamid   if streamid   else self.context['streamid'],
+     'requestid' : requestid  if requestid  else get_requestid('kXR_truncate'),
+     'fhandle'   : fhandle    if fhandle    else (4 * "\0"),
+     'size'      : size       if size       else 0,
+     'reserved'  : reserved   if reserved   else (4 * "\0"),
+     'dlen'      : dlen       if dlen       else len(path),
+     'path'      : path}
+    return self.mh.build_message(request_struct, params)
   
   def kXR_verifyw(self):
     """Return a packed representation of a kXR_verifyw request."""

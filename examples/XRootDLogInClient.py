@@ -30,14 +30,14 @@ class XRootDLogInClient:
     
     sess_id = client.do_full_handshake()
     
-    #request = client.kXR_bind()
+    #request = client.kXR_bind(sessid=sess_id)
     #request = client.kXR_chmod()
     #request = client.kXR_dirlist(path='/tmp')
     #request = client.kXR_endsess()
     #request = client.kXR_locate(path='/tmp/testfile')
     #request = client.kXR_mkdir(path='/tmp/testdir2')
     #request = client.kXR_mv(path='/tmp/testdir2 /tmp/testdir3')
-    request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_retstat)
+    #request = client.kXR_open(path='/tmp/testfile', options=XOpenRequestOption.kXR_retstat)
     #request = client.kXR_prepare(plist='/tmp/testfile')
     #request = client.kXR_query(reqcode=XQueryType.kXR_Qspace, args='/tmp')
     #request = client.kXR_rm(path='/tmp/testdir')
@@ -45,6 +45,7 @@ class XRootDLogInClient:
     #request = client.kXR_set(data='monitor on')
     #request = client.kXR_stat(path="/tmp/testfile")
     #request = client.kXR_statx(paths="/tmp/testfile")
+    request = client.kXR_truncate(size=20000, path="/tmp/testfile")
     
     client.send(request)
     response_raw = client.receive()
@@ -54,13 +55,13 @@ class XRootDLogInClient:
     #request = client.kXR_close(fhandle=response.fhandle)
     #request = client.kXR_readv(read_list1=(response.fhandle, 1024, 0),
     #                           read_list2=(response.fhandle, 1024, 1024))
-    request = client.kXR_sync(fhandle=response.fhandle)
+    #request = client.kXR_sync(fhandle=response.fhandle)
 
     
-    client.send(request)
-    response_raw = client.receive()
-    response = client.unpack(response_raw, request)
-    print response
+#    client.send(request)
+#    response_raw = client.receive()
+#    response = client.unpack(response_raw, request)
+#    print response
     
     
     
