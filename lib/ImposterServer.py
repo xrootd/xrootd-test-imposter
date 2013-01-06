@@ -155,8 +155,7 @@ class ImposterServer:
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Stat')
                       
-    if data: pass
-    else:
+    if not data:
       data = (x for x in (id, size, flags, modtime) if x is not None)
       data = ' '.join([str(param) for param in data])
     

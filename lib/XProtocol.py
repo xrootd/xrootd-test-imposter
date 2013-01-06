@@ -606,7 +606,9 @@ ServerResponseBody_Attn_asyncrd = [
 ServerResponseBody_Attn_asynresp = [
   {'name': 'actnum', 'type': 'l'},
   {'name': 'reserved', 'type': 's', 'size': 4},
-  {'name': 'resphdr', 'type': 'ServerResponseHeader'},
+  {'name': 'respstreamid', 'type': 'H'},
+  {'name': 'respstatus', 'type': 'H'},
+  {'name': 'resplen', 'type': 'l'},
   {'name': 'respdata', 'type': 's', 'size': 'dlen'}
 ]
 

@@ -71,8 +71,8 @@ def get_struct(name):
     return copy.copy(struct)
   
 def get_requestid(requestid):
-  """Return the integer request ID associated with the given string
-  request ID.""" 
+  """Return the integer request ID associated with the given string request ID, 
+  or the other way around.""" 
   try:
     if hasattr(XProtocol.XRequestTypes, requestid):
       return getattr(XProtocol.XRequestTypes, requestid)
@@ -86,8 +86,8 @@ def get_requestid(requestid):
   sys.exit(1)
   
 def get_responseid(responseid):
-  """Return the string response ID associated with the given integer
-  response ID."""
+  """Return the string response ID associated with the given integer response 
+  ID, or the other way around."""
   try:
     if hasattr(XProtocol.XResponseType, responseid):
       return getattr(XProtocol.XResponseType, responseid)
@@ -100,4 +100,19 @@ def get_responseid(responseid):
   print "[!] Unknown response ID:", responseid
   sys.exit(1)
 
+def get_attncode(attncode):
+  """Return the string attn code associated with the given integer attn code, 
+  or the other way around."""
+  try:
+    if hassatr(XProtocol.XActionCode, attncode):
+      return getattr(XProtocol.XActionCode, attncode)
+  except: pass
+  
+  try:
+    return XProtocol.XActionCode.reverse_mapping[attncode]
+  except: pass
+  
+  print "[!] Unknown attn code:", attncode
+  sys.exit(1)
+  
 

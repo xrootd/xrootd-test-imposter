@@ -22,7 +22,7 @@ import socket
 
 from collections import namedtuple
 from Utils import flatten, struct_format, format_length, get_requestid, \
-                  get_responseid, get_struct
+                  get_responseid, get_struct, get_attncode
 
 import XProtocol
 
@@ -92,10 +92,19 @@ class MessageHelper:
     streamid = header[0]
     status = header[1]
     dlen = header[2]
+    body = header[-1]
 
     # Check if this is a handshake response
     if requestid == XProtocol.XRequestTypes.handshake:
       body_struct = get_struct('ServerInitHandShake')
+    # Check if this is an asynchronous response
+    elif status == XProtocol.XResponseType.kXR_attn:
+      # Extract the attn code
+      attncode = struct.unpack('>H', body[:2])[0]
+      body_struct = get_struct('ServerResponseBody_Attn_' \
+                               + get_attncode(attncode)[4:])
+      if not body_struct: 
+        body_struct = body_struct = get_struct('ServerResponseBody_Attn')
     # Check if this is more than a simple kXR_ok response
     elif status != XProtocol.XResponseType.kXR_ok:
       body_struct = get_struct('ServerResponseBody_' \
