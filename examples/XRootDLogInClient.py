@@ -17,7 +17,7 @@
 #-------------------------------------------------------------------------------
 
 from lib.ImposterClient import ImposterClient
-from lib.XProtocol import XOpenRequestMode, XOpenRequestOption, XQueryType
+from lib.XProtocol import XResponseType
 
 class XRootDLogInClient:
   @classmethod
@@ -28,41 +28,52 @@ class XRootDLogInClient:
   def __call__(self, context):
     client = ImposterClient(context)
     
-    sess_id = client.do_full_handshake()
+    # The following line will to the equivalent of the rest of this method,
+    # using sensible default values.
+    #
+    # sess_id = client.do_full_handshake()
     
-    #request = client.kXR_bind(sessid=sess_id)
-    #request = client.kXR_chmod()
-    #request = client.kXR_dirlist(path='/tmp')
-    #request = client.kXR_endsess()
-    #request = client.kXR_locate(path='/tmp/testfile')
-    #request = client.kXR_mkdir(path='/tmp/testdir2')
-    #request = client.kXR_mv(path='/tmp/testdir2 /tmp/testdir3')
-    request = client.kXR_open(path='/tmp/testfile2', options=XOpenRequestOption.kXR_new)
-    #request = client.kXR_prepare(plist='/tmp/testfile')
-    #request = client.kXR_query(reqcode=XQueryType.kXR_Qspace, args='/tmp')
-    #request = client.kXR_rm(path='/tmp/testdir')
-    #request = client.kXR_rmdir(path='/tmp/testdir3')
-    #request = client.kXR_set(data='monitor on')
-    #request = client.kXR_stat(path="/tmp/testfile")
-    #request = client.kXR_statx(paths="/tmp/testfile")
-    #request = client.kXR_truncate(size=20000, path="/tmp/testfile")
-    
-    client.send(request)
+    handshake_request = client.handshake()
+    client.send(handshake_request)
     response_raw = client.receive()
-    response = client.unpack(response_raw, request)
+    response = client.unpack(response_raw, handshake_request)
     print response
-
     
-    #request = client.kXR_close(fhandle=response.fhandle)
-    #request = client.kXR_readv(read_list1=(response.fhandle, 1024, 0),
-    #                           read_list2=(response.fhandle, 1024, 1024))
-    #request = client.kXR_sync(fhandle=response.fhandle)
-    request = client.kXR_write(fhandle=response.fhandle, data='foobar')
-    
-    client.send(request)
+    protocol_request = client.kXR_protocol()
+    client.send(protocol_request)
     response_raw = client.receive()
-    response = client.unpack(response_raw, request)
+    response = client.unpack(response_raw, protocol_request)
     print response
+    
+    login_request = client.kXR_login(username='imposter')
+    client.send(login_request)
+    response_raw = client.receive()
+    response = client.unpack(response_raw, login_request)
+    sessid = response.sessid
+    print response
+    
+    # Check if we need to auth
+    if len(response.sec):
+      auth_request = client.kXR_auth(authtoken=response.sec)
+      client.send(auth_request)
+      response_raw = client.receive()
+      response = client.unpack(response_raw, auth_request)
+      print response
+    
+      # Check if we need to authmore
+      while response.status == XResponseType.kXR_authmore:
+        print "More authentication needed, continuing"
+        auth_request = client.kXR_auth(contcred=response[-1])
+        client.send(auth_request)
+        response_raw = client.receive()
+        response = client.unpack(response_raw, auth_request)
+        print response
+      
+    if response.status == XResponseType.kXR_ok:
+      print "++++++ logged in successfully"
+    else:
+      print "++++++ login failed (%s): %s" % (response.status, 
+                                              response.errmsg)
     
     
     

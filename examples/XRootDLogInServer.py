@@ -28,32 +28,39 @@ class XRootDLogInServer:
   def __call__( self, context ):
     server = ImposterServer(context)
     
-    server.do_full_handshake(verify_auth=True)
+    # The following line will to the equivalent of the rest of this method,
+    # using sensible default values and optionally fully authenticating.
+    #
+    # server.do_full_handshake(verify_auth=True)
+    
     for request in server.receive():
       
-      #if request.type == 'kXR_stat':
-      print request
-      #response = server.kXR_stat(id=0, size=0, flags=0, modtime=0)
-      #response = server.kXR_error(errmsg='foobar')
-      #response = server.kXR_redirect(host='localhost')
-      #response = server.kXR_wait(seconds=5, infomsg='foobar')
-      #response = server.kXR_waitresp(seconds=5)
-      #response = server.kXR_attn_asyncab(msg='foobar')
-      #response = server.kXR_attn_asyncdi(wsec=2, msec=20)
-      #response = server.kXR_attn_asyncgo()
-      #response = server.kXR_attn_asyncms(msg='foobar')
-      #response = server.kXR_attn_asyncrd(host='127.0.0.1')
-      #response = server.kXR_attn_asynresp(rstatus=XResponseType.kXR_error, rdata='foobar')
-      #response = server.kXR_attn_asyncwt(wsec=5)
-      #response = server.kXR_locate(data='Sr[::127.0.0.1]:1094')
-      response = server.kXR_open()
+      if request.type == 'handshake':
+        print request
+        # Send handshake + protocol at the same time
+        server.send(server.handshake() 
+                  + server.kXR_protocol(streamid=request.streamid))
       
-      server.send(response)
+      elif request.type == 'kXR_login':
+        print request
+        server.send(server.kXR_login(streamid=request.streamid))
         
-#      if request.type == 'kXR_mkdir':
-#        print request
-#        response = server.kXR_stat(id=0, size=0, flags=0, modtime=0)
-#        server.send(response)
+      elif request.type == 'kXR_auth':
+        # Authenticate this request's credentials and potentially get
+        # continuation (authmore) parameters
+        contparams = server.authenticate(request.cred)
+        if contparams:
+          # Send an authmore if necessary
+          response = server.kXR_authmore(streamid=request.streamid, 
+                                       data=contparams)
+        else:
+          # We are done authenticating
+          response = server.kXR_ok(streamid=request.streamid)
+        
+        server.send(response)
+        # If we have contparams, there will be more auth-related requests 
+        # to receive at this stage. Otherwise, we are done
+        if not contparams: break
     
     server.close()
     
