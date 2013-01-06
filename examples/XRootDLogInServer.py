@@ -39,8 +39,12 @@ class XRootDLogInServer:
         #response = server.kXR_wait(seconds=5, infomsg='foobar')
         #response = server.kXR_waitresp(seconds=5)
         #response = server.kXR_attn_asyncab(msg='foobar')
-        response = server.kXR_attn_asyncdi(wsec=2, msec=20)
+        #response = server.kXR_attn_asyncdi(wsec=2, msec=20)
+        #response = server.kXR_attn_asyncgo()
+        #response = server.kXR_attn_asyncms(msg='foobar')
+        #response = server.kXR_attn_asyncrd(host='127.0.0.1')
         #response = server.kXR_attn_asynresp(rstatus=XResponseType.kXR_error, rdata='foobar')
+        response = server.kXR_attn_asyncwt(wsec=5)
         server.send(response)
         
 #      if request.type == 'kXR_mkdir':

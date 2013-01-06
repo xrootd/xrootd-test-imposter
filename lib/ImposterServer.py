@@ -198,6 +198,34 @@ class ImposterServer:
      'msec'    : msec      if msec     else 0}
     return self.mh.build_message(response_struct, params)
   
+  def kXR_attn_asyncgo(self, streamid=None, status=None, dlen=None, 
+                       actnum=None):
+    """Return a packed representation of a kXR_attn_asyncgo response."""
+    if not actnum: actnum = get_attncode('kXR_asyncgo')
+    return self.kXR_attn_asyncab(streamid, status, dlen, actnum, None)
+  
+  def kXR_attn_asyncms(self, streamid=None, status=None, dlen=None, actnum=None,
+                       msg=None):
+    """Return a packed representation of a kXR_attn_asyncms response."""
+    if not actnum: actnum = get_attncode('kXR_asyncms')
+    return self.kXR_attn_asyncab(streamid, status, dlen, actnum, msg)
+  
+  def kXR_attn_asyncrd(self, streamid=None, status=None, dlen=None, actnum=None,
+                       port=None, host=None, token=None):
+    """Return a packed representation of a kXR_attn_asyncrd response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Attn_asyncrd')
+    if not host: host = ''
+    else: host += (token if token else '')
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_attn'),
+     'dlen'    : dlen      if dlen     else len(host),
+     'actnum'  : actnum    if actnum   else get_attncode('kXR_asyncrd'),
+     'port'    : port      if port     else 0,
+     'host'    : host}
+    return self.mh.build_message(response_struct, params)
+  
   def kXR_attn_asynresp(self, streamid=None, status=None, dlen=None, 
                         actnum=None, reserved=None, rstreamid=None,
                         rstatus=None, rlen=None, rdata=None):
@@ -217,6 +245,19 @@ class ImposterServer:
      'rdata'   : rdata}
     return self.mh.build_message(response_struct, params)
   
+  def kXR_attn_asyncwt(self, streamid=None, status=None, dlen=None, actnum=None, 
+                       wsec=None):
+    """Return a packed representation of a kXR_attn_asyncwt response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Attn_asyncwt')
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_attn'),
+     'dlen'    : dlen      if dlen     else 8,
+     'actnum'  : actnum    if actnum   else get_attncode('kXR_asyncwt'),
+     'wsec'    : wsec      if wsec     else 0}
+    return self.mh.build_message(response_struct, params)
+  
   def kXR_authmore(self, streamid=None, status=None, dlen=None, data=None):
     """Return a packed representation of a kXR_authmore response."""
     response_struct = get_struct('ServerResponseHeader') + \
@@ -233,10 +274,8 @@ class ImposterServer:
     """Return a packed representation of a kXR_error response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Error')
-    
     if not errmsg: errmsg = ''
     if not errnum: errnum = XProtocol.XErrorCode.kXR_ArgInvalid
-    
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_error'),
@@ -249,7 +288,6 @@ class ImposterServer:
     """Return a packed representation of a kXR_ok response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Buffer')
-
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_ok'),
@@ -267,9 +305,8 @@ class ImposterServer:
     """Return a packed representation of a kXR_redirect response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Redirect')
-
-    if host: host += (opaque if opaque else '') + (token if token else '')
-
+    if not host: host = ''
+    else: host += (opaque if opaque else '') + (token if token else '')
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_redirect'),
@@ -284,7 +321,6 @@ class ImposterServer:
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Wait')
     if not infomsg: infomsg = ''
-
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_wait'),
@@ -297,7 +333,6 @@ class ImposterServer:
     """Return a packed kXR_waitresp response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Waitresp')
-
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_waitresp'),
