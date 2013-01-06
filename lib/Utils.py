@@ -104,7 +104,7 @@ def get_attncode(attncode):
   """Return the string attn code associated with the given integer attn code, 
   or the other way around."""
   try:
-    if hassatr(XProtocol.XActionCode, attncode):
+    if hasattr(XProtocol.XActionCode, attncode):
       return getattr(XProtocol.XActionCode, attncode)
   except: pass
   

@@ -606,10 +606,10 @@ ServerResponseBody_Attn_asyncrd = [
 ServerResponseBody_Attn_asynresp = [
   {'name': 'actnum', 'type': 'l'},
   {'name': 'reserved', 'type': 's', 'size': 4},
-  {'name': 'respstreamid', 'type': 'H'},
-  {'name': 'respstatus', 'type': 'H'},
-  {'name': 'resplen', 'type': 'l'},
-  {'name': 'respdata', 'type': 's', 'size': 'resplen'}
+  {'name': 'rsid', 'type': 'H'},
+  {'name': 'rstatus', 'type': 'H'},
+  {'name': 'rlen', 'type': 'l'},
+  {'name': 'rdata', 'type': 's', 'size': 'dlen', 'offset': 16}
 ]
 
 ServerResponseBody_Attn_asyncwt = [

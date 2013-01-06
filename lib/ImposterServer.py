@@ -23,7 +23,7 @@ import XProtocol
 import MessageHelper
 import AuthHelper
 
-from Utils import get_struct, gen_sessid, get_responseid
+from Utils import get_struct, gen_sessid, get_responseid, get_attncode
 
       
 class ImposterServer:
@@ -170,9 +170,38 @@ class ImposterServer:
   # Generic server responses
   #=============================================================================
   
-  def kXR_attn(self, streamid=None, status=None, dlen=None):
-    """Return a packed representation of a kXR_attn response."""
-    pass
+  def kXR_attn_asyncab(self, streamid=None, status=None, dlen=None, 
+                       actnum=None, msg=None):
+    """Return a packed representation of a kXR_attn_asyncab response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Attn')
+    if not msg: msg = ''
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_attn'),
+     'dlen'    : dlen      if dlen     else len(msg) + 4,
+     'actnum'  : actnum    if actnum   else get_attncode('kXR_asyncab'),
+     'parms'   : msg}
+    return self.mh.build_message(response_struct, params)
+  
+  def kXR_attn_asynresp(self, streamid=None, status=None, dlen=None, 
+                        actnum=None, reserved=None, rstreamid=None,
+                        rstatus=None, rlen=None, rdata=None):
+    """Return a packed representation of a kXR_attn_asyncab response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Attn_asynresp')
+    if not rdata: rdata = ''
+    params = \
+    {'streamid': streamid  if streamid  else 0,
+     'status'  : status    if status    else get_responseid('kXR_attn'),
+     'dlen'    : dlen      if dlen      else len(rdata) + 16,
+     'actnum'  : actnum    if actnum    else get_attncode('kXR_asynresp'),
+     'reserved': reserved  if reserved  else (4 * '\0'),
+     'rsid'    : rstreamid if rstreamid else 0,
+     'rstatus' : rstatus   if rstatus   else get_responseid('kXR_ok'),
+     'rlen'    : rlen      if rlen      else len(rdata),
+     'rdata'   : rdata}
+    return self.mh.build_message(response_struct, params)
   
   def kXR_authmore(self, streamid=None, status=None, dlen=None, data=None):
     """Return a packed representation of a kXR_authmore response."""
