@@ -24,7 +24,6 @@ import os
 import XProtocol
 import MessageHelper
 import AuthHelper
-import OpenHelper
 
 from Utils import get_struct, get_requestid, gen_sessid
 
@@ -88,10 +87,10 @@ class ImposterClient:
         print response
       
     if response.status == XProtocol.XResponseType.kXR_ok:
-      print "++++++ logged in successfully"
+      print "Logged in successfully"
       return sessid
     else:
-      print "++++++ login failed (%s): %s" % (response.status, 
+      print "Login failed (%s): %s" % (response.status, 
                                               response.errmsg) 
   
   def handshake(self, first=None, second=None, third=None, fourth=None, 

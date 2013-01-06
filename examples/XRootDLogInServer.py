@@ -23,7 +23,7 @@ class XRootDLogInServer:
   @classmethod
   def getDescription( cls ):
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
-             'seclib': 'libXrdSec.dylib', 'sec.protocol': 'unix' }
+             'seclib': 'libXrdSec.so', 'sec.protocol': 'gsi' }
 
   def __call__( self, context ):
     server = ImposterServer(context)
@@ -60,7 +60,11 @@ class XRootDLogInServer:
         server.send(response)
         # If we have contparams, there will be more auth-related requests 
         # to receive at this stage. Otherwise, we are done
-        if not contparams: break
+        if not contparams: continue
+      
+      elif request.type == 'kXR_stat':
+        print request
+        server.send(server.kXR_stat())
     
     server.close()
     

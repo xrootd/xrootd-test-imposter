@@ -22,8 +22,8 @@ from lib.XProtocol import XResponseType
 class XRootDLogInClient:
   @classmethod
   def getDescription(cls):
-    return { 'type': 'Active', 'hostname': '192.168.56.101', 'port': 1094, 
-             'clients': 1, 'seclib': 'libXrdSec.dylib' }
+    return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 
+             'clients': 1, 'seclib': 'libXrdSec.so' }
 
   def __call__(self, context):
     client = ImposterClient(context)
@@ -63,17 +63,16 @@ class XRootDLogInClient:
       # Check if we need to authmore
       while response.status == XResponseType.kXR_authmore:
         print "More authentication needed, continuing"
-        auth_request = client.kXR_auth(contcred=response[-1])
+        auth_request = client.kXR_auth(contcred=response.data)
         client.send(auth_request)
         response_raw = client.receive()
         response = client.unpack(response_raw, auth_request)
         print response
       
     if response.status == XResponseType.kXR_ok:
-      print "++++++ logged in successfully"
+      print "Logged in successfully"
     else:
-      print "++++++ login failed (%s): %s" % (response.status, 
-                                              response.errmsg)
+      print "Login failed (%s): %s" % (response.status, response.errmsg)
     
     
     

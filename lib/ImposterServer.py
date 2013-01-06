@@ -326,7 +326,7 @@ class ImposterServer:
   
   def kXR_authmore(self, streamid=None, status=None, dlen=None, data=None):
     """Return a packed representation of a kXR_authmore response."""
-    if not status: status = self.get_responseid('kXR_authmore')
+    if not status: status = get_responseid('kXR_authmore')
     return self.kXR_ok(streamid, status, dlen, data)
 
   def kXR_error(self, streamid=None, status=None, dlen=None, errnum=None,
