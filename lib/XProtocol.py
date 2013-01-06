@@ -594,13 +594,13 @@ ServerResponseBody_Waitresp = [
 
 ServerResponseBody_Attn = [
   {'name': 'actnum', 'type': 'l'},
-  {'name': 'parms', 'type': 's', 'size': 'dlen'}
+  {'name': 'parms', 'type': 's', 'size': 'dlen', 'offset': 4}
 ]
 
 ServerResponseBody_Attn_asyncrd = [
   {'name': 'actnum', 'type': 'l'},
   {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 's', 'size': 'dlen'}
+  {'name': 'host', 'type': 's', 'size': 'dlen', 'offset': 8}
 ]
 
 ServerResponseBody_Attn_asynresp = [
@@ -609,7 +609,7 @@ ServerResponseBody_Attn_asynresp = [
   {'name': 'respstreamid', 'type': 'H'},
   {'name': 'respstatus', 'type': 'H'},
   {'name': 'resplen', 'type': 'l'},
-  {'name': 'respdata', 'type': 's', 'size': 'dlen'}
+  {'name': 'respdata', 'type': 's', 'size': 'resplen'}
 ]
 
 ServerResponseBody_Attn_asyncwt = [
