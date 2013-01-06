@@ -553,7 +553,7 @@ ServerResponseHeader = [
 ]
 
 ServerResponseBody_Bind = [
-  {'name': 'substreamid', 'type': 'c'},
+  {'name': 'pathid', 'type': 'c'},
 ]
 
 ServerResponseBody_Open = [

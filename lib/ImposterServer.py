@@ -117,20 +117,32 @@ class ImposterServer:
      'protover': protover  if protover else 663,
      'msgval'  : msgval    if msgval   else 1}
     return self.mh.build_message(response_struct, params)
-    
-  def kXR_protocol(self, streamid=None, status=None, dlen=None, pval=None, 
-               flags=None):
-    """Return a packed representation of a kXR_protocol response.""" 
+  
+  def kXR_admin(self):
+    raise NotImplementedError()
+  
+  def kXR_bind(self, streamid=None, status=None, dlen=None, pathid=None):
+    """Return a packed representation of a kXR_bind response.""" 
     response_struct = get_struct('ServerResponseHeader') + \
-                      get_struct('ServerResponseBody_Protocol')
+                      get_struct('ServerResponseBody_Bind')
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_ok'),
-     'dlen'    : dlen      if dlen     else 8,
-     'pval'    : pval      if pval     else XProtocol.kXR_PROTOCOLVERSION,
-     'flags'   : flags     if flags    else XProtocol.kXR_isServer}
+     'dlen'    : dlen      if dlen     else 1,
+     'pathid'  : pathid    if pathid   else '\0'}
     return self.mh.build_message(response_struct, params)
-    
+  
+  def kXR_dirlist(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_dirlist response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
+  
+  def kXR_getfile(self):
+    raise NotImplementedError()
+  
+  def kXR_locate(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_locate response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
+  
   def kXR_login(self, streamid=None, status=None, dlen=None, sessid=None,
             sec=None):
     """Return a packed representation of a kXR_login response."""
@@ -149,22 +161,76 @@ class ImposterServer:
      'sec'     : sec}
     return self.mh.build_message(response_struct, params)
   
-  def kXR_stat(self, streamid=None, status=None, dlen=None, data=None, id=None,
-           size=None, flags=None, modtime=None):
-    """Return a packed representation of a kXR_stat response.""" 
+  def kXR_open(self, streamid=None, status=None, dlen=None, fhandle=None,
+               cpsize=None, cptype=None, info=None):
+    """Return a packed representation of a kXR_open response.""" 
     response_struct = get_struct('ServerResponseHeader') + \
-                      get_struct('ServerResponseBody_Stat')
-                      
-    if not data:
-      data = (x for x in (id, size, flags, modtime) if x is not None)
-      data = ' '.join([str(param) for param in data])
-    
+                      get_struct('ServerResponseBody_Open')
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_ok'),
-     'dlen'    : dlen      if dlen     else len(data),
-     'data'    : data}
+     'dlen'    : 0,
+     'fhandle' : fhandle   if fhandle  else (4 * '\0'),
+     'cpsize'  : cpsize    if cpsize   else 0,
+     'cptype'  : cptype    if cptype   else (4 * '\0'),
+     'info'    : info      if info     else ''}
+    if not cpsize: del response_struct[4]; del params['cpsize']
+    if not cptype: del response_struct[4]; del params['cptype']
+    if not info:   del response_struct[4]; del params['info']
+    if not dlen: 
+      dlen = 4 + (len(cpsize) if cpsize else 0) \
+               + (len(cptype) if cptype else 0) \
+               + (len(info)   if info   else 0)
+    params['dlen'] = dlen
     return self.mh.build_message(response_struct, params)
+  
+  def kXR_prepare(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_prepare response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
+    
+  def kXR_protocol(self, streamid=None, status=None, dlen=None, pval=None, 
+               flags=None):
+    """Return a packed representation of a kXR_protocol response.""" 
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Protocol')
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_ok'),
+     'dlen'    : dlen      if dlen     else 8,
+     'pval'    : pval      if pval     else XProtocol.kXR_PROTOCOLVERSION,
+     'flags'   : flags     if flags    else XProtocol.kXR_isServer}
+    return self.mh.build_message(response_struct, params)
+  
+  def kXR_putfile(self):
+    raise NotImplementedError()
+  
+  def kXR_query(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_query response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
+  
+  def kXR_read(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_read response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
+  
+  def kXR_readv(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_readv response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
+  
+  def kXR_set(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_set response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
+  
+  def kXR_stat(self, streamid=None, status=None, dlen=None, data=None, id=None,
+           size=None, flags=None, modtime=None):
+    """Return a packed representation of a kXR_stat response."""                       
+    if not data:
+      data = (x for x in (id, size, flags, modtime) if x is not None)
+      data = ' '.join([str(param) for param in data])
+    return self.kXR_ok(streamid, status, dlen, data)
+  
+  def kXR_statx(self, streamid=None, status=None, dlen=None, data=None):
+    """Return a packed representation of a kXR_statx response.""" 
+    return self.kXR_ok(streamid, status, dlen, data)
   
   #=============================================================================
   # Generic server responses
@@ -260,14 +326,8 @@ class ImposterServer:
   
   def kXR_authmore(self, streamid=None, status=None, dlen=None, data=None):
     """Return a packed representation of a kXR_authmore response."""
-    response_struct = get_struct('ServerResponseHeader') + \
-                      get_struct('ServerResponseBody_Authmore')                     
-    params = \
-    {'streamid': streamid  if streamid else 0,
-     'status'  : status    if status   else get_responseid('kXR_authmore'),
-     'dlen'    : dlen      if dlen     else len(data),
-     'data'    : data}
-    return self.mh.build_message(response_struct, params)
+    if not status: status = self.get_responseid('kXR_authmore')
+    return self.kXR_ok(streamid, status, dlen, data)
 
   def kXR_error(self, streamid=None, status=None, dlen=None, errnum=None,
                 errmsg=None):
@@ -288,11 +348,12 @@ class ImposterServer:
     """Return a packed representation of a kXR_ok response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Buffer')
+    if not data: data = ''
     params = \
     {'streamid': streamid  if streamid else 0,
      'status'  : status    if status   else get_responseid('kXR_ok'),
-     'dlen'    : dlen      if dlen     else 0,
-     'data'    : data      if data     else ''}
+     'dlen'    : dlen      if dlen     else len(data),
+     'data'    : data}
     return self.mh.build_message(response_struct, params)
   
   def KXR_oksofar(self, streamid=None, status=None, dlen=None, data=None):
@@ -330,7 +391,7 @@ class ImposterServer:
     return self.mh.build_message(response_struct, params)
   
   def kXR_waitresp(self, streamid=None, status=None, dlen=None, seconds=None):
-    """Return a packed kXR_waitresp response."""
+    """Return a packed representation of a kXR_waitresp response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Waitresp')
     params = \
