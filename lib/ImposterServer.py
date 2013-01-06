@@ -170,8 +170,8 @@ class ImposterServer:
   # Generic server responses
   #=============================================================================
   
-  def kXR_attn_asyncab(self, streamid=None, status=None, dlen=None, 
-                       actnum=None, msg=None):
+  def kXR_attn_asyncab(self, streamid=None, status=None, dlen=None, actnum=None, 
+                       msg=None):
     """Return a packed representation of a kXR_attn_asyncab response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Attn')
@@ -184,10 +184,24 @@ class ImposterServer:
      'parms'   : msg}
     return self.mh.build_message(response_struct, params)
   
+  def kXR_attn_asyncdi(self, streamid=None, status=None, dlen=None, actnum=None, 
+                       wsec=None, msec=None):
+    """Return a packed representation of a kXR_attn_asyncdi response."""
+    response_struct = get_struct('ServerResponseHeader') + \
+                      get_struct('ServerResponseBody_Attn_asyncdi')
+    params = \
+    {'streamid': streamid  if streamid else 0,
+     'status'  : status    if status   else get_responseid('kXR_attn'),
+     'dlen'    : dlen      if dlen     else 12,
+     'actnum'  : actnum    if actnum   else get_attncode('kXR_asyncdi'),
+     'wsec'    : wsec      if wsec     else 0,
+     'msec'    : msec      if msec     else 0}
+    return self.mh.build_message(response_struct, params)
+  
   def kXR_attn_asynresp(self, streamid=None, status=None, dlen=None, 
                         actnum=None, reserved=None, rstreamid=None,
                         rstatus=None, rlen=None, rdata=None):
-    """Return a packed representation of a kXR_attn_asyncab response."""
+    """Return a packed representation of a kXR_attn_asynresp response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Attn_asynresp')
     if not rdata: rdata = ''
