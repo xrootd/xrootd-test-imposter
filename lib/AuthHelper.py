@@ -20,6 +20,7 @@ import sys
 import socket
 import struct
 import re
+import os
 
 import XProtocol
 import MessageHelper
@@ -38,7 +39,7 @@ class AuthHelper:
     self.seclib = self._extract_seclib_path(self.context['config'])
     self.mh = MessageHelper.MessageHelper(context)
     # Initialize the auth binding extension
-    init(self.seclib, self.context['config'])
+    init(self.context['config'], self.seclib)
 
   def build_request(self, authtoken=None, contcred=None, streamid=None, 
                     requestid=None, reserved=None, credtype=None, dlen=None, 
@@ -110,6 +111,9 @@ class AuthHelper:
       print "[!] Error authenticating:", e
       raise e
 
+  #=============================================================================
+  # Private methods
+  #=============================================================================
   def _extract_seclib_path(self, config):
     """Return the path to libXrdSec from the given config file. It's easier
     to do it here than in the extension."""
@@ -117,5 +121,5 @@ class AuthHelper:
     if not _match:
       raise AuthenticationError('xrootd.seclib not specified in config')
     else:
-      return _match.groups()[0]
+      return _match.groups()[0].split(os.path.sep)[-1].replace('\n', '')
     

@@ -32,18 +32,19 @@
 #include <XrdOuc/XrdOucErrInfo.hh>
 #include <XrdSys/XrdSysLogger.hh>
 
-
+// Custom exception
 PyObject* AuthenticationError;
 
 XrdSecProtocol *authProtocol;
-XrdOucEnv *authEnv;
+XrdOucEnv *pAuthEnv;
 XrdSysLogger logger;
 std::string protocolName;
 
 const char *host = "localhost";
-const char *config;
-const char *authLibName;
-void *libHandle;
+const char *pTempConfigFile;
+const char *pAuthLibName;
+const char *pSecurityToken;
+void *pAuthLibHandle;
 
 int sock;
 struct sockaddr_in *sockadd;
