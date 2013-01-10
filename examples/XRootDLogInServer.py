@@ -25,7 +25,6 @@ class XRootDLogInServer:
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
              'seclib': 'libXrdSec.so', 'sec.protocol': 'gsi -d:3' }
 
-
   def __call__( self, context ):
     server = ImposterServer(context)
 

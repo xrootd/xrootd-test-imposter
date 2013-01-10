@@ -20,7 +20,6 @@
 
 using namespace std;
 
-
 /**
  * Open a shared library using dlopen.
  *
@@ -29,13 +28,16 @@ using namespace std;
  *         PyErr_SetString will also be called, so the calling function can
  *         return NULL and propagate this error.
  */
-void *openLibrary(const char* libName) {
+void *
+openLibrary(const char* libName)
+{
     std::stringstream err;
     void *libHandle = ::dlopen(libName, RTLD_NOW);
-    if (!libHandle) {
-        err << "Unable to load library " << libName << ": "
-                  << ::dlerror() << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
+    if (!libHandle)
+    {
+        err << "Unable to load library " << libName << ": " << ::dlerror()
+                << endl;
+        PyErr_SetString(AuthenticationError, err.str().c_str());
         return 0;
     }
     return libHandle;
@@ -47,10 +49,13 @@ void *openLibrary(const char* libName) {
  * @param data pointer to the char data to write to the file.
  * @return the filename of the newly created temporary file.
  */
-const char *writeTempFile(const char* data) {
+const char *
+writeTempFile(const char* data)
+{
     const char *tempFileName = tmpnam(NULL);
     ofstream out(tempFileName);
-    out << data; out.close();
+    out << data;
+    out.close();
     return tempFileName;
 }
 
@@ -60,7 +65,8 @@ const char *writeTempFile(const char* data) {
  *
  * @param sock the socket file descriptor to use.
  */
-void getSockName(int sock) {
+void getSockName(int sock)
+{
     socklen_t socklen = sizeof(struct sockaddr_in);
     sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
     getsockname(sock, (sockaddr*) sockadd, &socklen);
@@ -72,15 +78,15 @@ void getSockName(int sock) {
  *
  * @param sock the socket file descriptor to use.
  */
-void getPeerName(int sock) {
+void getPeerName(int sock)
+{
     socklen_t socklen = sizeof(struct sockaddr_in);
     sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
     getpeername(sock, (sockaddr*) sockadd, &socklen);
 }
 
-
-
-extern "C" {
+extern "C"
+{
 
 /**
  * Build a security token to send as a response to a kXR_login request,
@@ -91,30 +97,32 @@ extern "C" {
  * @throw IOError on error.
  * @return the security token that was built.
  */
-static PyObject* get_parms(PyObject *self, PyObject *args) {
+static PyObject* get_parms(PyObject *self, PyObject *args)
+{
 
     XrdSecService *securityService;
     std::stringstream err;
 
     // Parse the python parameters
     if (!PyArg_ParseTuple(args, "ss", &config, &authLibName))
-        return NULL;
+    return NULL;
 
     // dlopen the library
-    if (!(libHandle = openLibrary(authLibName))) {
+    if (!(libHandle = openLibrary(authLibName)))
+    {
         return NULL;
     }
 
     // Get the authentication function handle
     XrdSecGetServ_t authHandler = (XrdSecGetServ_t) dlsym(libHandle,
             "XrdSecgetService");
-    if (!authHandler) {
+    if (!authHandler)
+    {
         err << "Unable to get the XrdSecgetService symbol from library "
-                << authLibName << ": " << ::dlerror() << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
+        << authLibName << ": " << ::dlerror() << endl;
         ::dlclose(libHandle);
         libHandle = 0;
-        return NULL;
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
     }
 
     // Write the temporary config file
@@ -122,27 +130,26 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
 
     // Get the security service object
     securityService = (*authHandler)(&logger, tempConfFile);
-    if (!securityService) {
+    if (!securityService)
+    {
         err << "Unable to create security service" << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
         ::dlclose(libHandle);
         libHandle = 0;
-        return NULL;
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
     }
 
     // Get the security token
     int tokenSize;
     const char *token = securityService->getParms(tokenSize, host);
-    if (!token) {
+    if (!token)
+    {
         err << "No security token for " << host << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
-        return NULL;
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
     }
 
     // Return the security token
     return Py_BuildValue("s", token);
 }
-
 
 /**
  * Authenticate a client's credentials which were supplied via a kXR_auth
@@ -157,7 +164,8 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
  *         parameters and their length on success and more authentication
  *         needed.
  */
-static PyObject* authenticate(PyObject *self, PyObject *args) {
+static PyObject* authenticate(PyObject *self, PyObject *args)
+{
 
     const char *creds;
     int credsLen;
@@ -180,20 +188,21 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
     getPeerName(sock);
 
     // dlopen the library
-    if (!(libHandle = openLibrary(authLibName))) {
+    if (!(libHandle = openLibrary(authLibName)))
+    {
         return NULL;
     }
 
     // Get the authentication function handle
     XrdSecGetServ_t authHandler = (XrdSecGetServ_t) dlsym(libHandle,
             "XrdSecgetService");
-    if (!authHandler) {
+    if (!authHandler)
+    {
         err << "Unable to get the XrdSecgetService symbol from library "
                 << authLibName << ": " << ::dlerror() << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
         ::dlclose(libHandle);
         libHandle = 0;
-        return NULL;
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
     }
 
     // Write the temporary config file
@@ -201,39 +210,43 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
 
     // Get the security service object
     securityService = (*authHandler)(&logger, tempConfFile);
-    if (!securityService) {
+    if (!securityService)
+    {
         err << "Unable to create security service" << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
-        return NULL;
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
     }
 
     // Get the protocol (unless it already exists)
-    if (!authProtocol) {
+    if (!authProtocol)
+    {
         authProtocol = securityService->getProtocol((const char *) host,
-                (const sockaddr &)*sockadd,
+                (const sockaddr &) *sockadd,
                 (const XrdSecCredentials *) credentials, &ei);
     }
 
-    if (!authProtocol) {
+    if (!authProtocol)
+    {
         err << "getProtocol error: " << ei.getErrText() << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
-        return NULL;
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
     }
 
     // Now authenticate the credentials
     int authResult = authProtocol->Authenticate(credentials, &contParams, &ei);
-    if (authResult < 0) {
+    if (authResult < 0)
+    {
         authProtocol->Delete();
         err << "Authentication error: " << ei.getErrText() << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
-        return NULL;
-    } else if (authResult > 0) {
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
+    }
+    else if (authResult > 0)
+    {
         return Py_BuildValue("s#", contParams->buffer, contParams->size);
-    } else {
+    }
+    else
+    {
         return Py_BuildValue("");
     }
 }
-
 
 /**
  * Try to get an initial credentials object for any supported protocol (prompted
@@ -252,7 +265,8 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
  * @return name of the successful protocol, the opaque credentials string and
  *         length of the credentials on success.
  */
-static PyObject* get_credentials(PyObject *self, PyObject *args) {
+static PyObject* get_credentials(PyObject *self, PyObject *args)
+{
 
     const char* authToken;
     int authTokenLen;
@@ -266,8 +280,8 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
 
     // Parse the python parameters
     if (!PyArg_ParseTuple(args, "z#z#si", &authToken, &authTokenLen, &contCred,
-            &contCredLen, &authLibName, &sock))
-        return NULL;
+                    &contCredLen, &authLibName, &sock))
+    return NULL;
 
     // Prepare some variables
     authEnv = new XrdOucEnv();
@@ -275,21 +289,23 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
     XrdOucErrInfo ei("", authEnv);
     getSockName(sock);
 
-    if (authToken != NULL) {
+    if (authToken != NULL)
+    {
         authParams = new XrdSecParameters((char*) authToken, authTokenLen);
     }
 
     // Check if this is an authmore call, i.e. we have continuation credentials
-    if (authProtocol && (contCred != NULL)) {
+    if (authProtocol && (contCred != NULL))
+    {
         XrdSecParameters *secToken = new XrdSecParameters((char*) contCred,
                 contCredLen);
 
         credentials = authProtocol->getCredentials(secToken, &ei);
-        if (!credentials) {
+        if (!credentials)
+        {
             err << "Unable to get continuation credentials: " << ei.getErrText()
-                    << endl;
-            PyErr_SetString(PyExc_IOError, err.str().c_str());
-            return NULL;
+            << endl;
+            return PyErr_Format(AuthenticationError, err.str().c_str());;
         }
 
         return Py_BuildValue("ss#", protocolName.c_str(), credentials->buffer,
@@ -297,71 +313,81 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
     }
 
     // dlopen the library
-    if (!(libHandle = openLibrary(authLibName))) {
+    if (!(libHandle = openLibrary(authLibName)))
+    {
         return NULL;
     }
 
     // Get the authentication function handle
     XrdSecGetProt_t authHandler = (XrdSecGetProt_t) dlsym(libHandle,
             "XrdSecGetProtocol");
-    if (!authHandler) {
+    if (!authHandler)
+    {
         err << "Unable to get the XrdSecGetProtocol symbol from library "
-                << authLibName << ": " << ::dlerror() << endl;
-        PyErr_SetString(PyExc_IOError, err.str().c_str());
+        << authLibName << ": " << ::dlerror() << endl;
         ::dlclose(libHandle);
         libHandle = 0;
-        return NULL;
+        return PyErr_Format(AuthenticationError, err.str().c_str());;
     }
 
     // Loop over the possible protocols to find one that gives us valid
     // credentials
-    while (1) {
+    while (1)
+    {
         // Get the protocol
         authProtocol = (*authHandler)(host, *((sockaddr*) sockadd), *authParams,
                 0);
-        if (!authProtocol) {
+        if (!authProtocol)
+        {
             err << "No protocols left to try" << endl;
-            PyErr_SetString(PyExc_IOError, err.str().c_str());
-            return NULL;
+            return PyErr_Format(AuthenticationError, err.str().c_str());;
         }
 
         protocolName = authProtocol->Entity.prot;
         cout << "Trying to get credentials for protocol: "
-                << protocolName.c_str() << endl;
+        << protocolName.c_str() << endl;
 
         // Get the credentials from the current protocol
         credentials = authProtocol->getCredentials(0, &ei);
-        if (!credentials) {
+        if (!credentials)
+        {
             cout << "Cannot get credentials for protocol "
-                    << protocolName.c_str() << ": " << ei.getErrText() << endl;
+            << protocolName.c_str() << ": " << ei.getErrText() << endl;
             authProtocol->Delete();
             continue;
-        } else
-            break;
+        }
+        else
+        break;
     }
 
     cout << "Successfully got credentials for protocol: "
-            << protocolName.c_str() << endl;
+    << protocolName.c_str() << endl;
 
     return Py_BuildValue("ss#", protocolName.c_str(), credentials->buffer,
             credentials->size);
 }
 }
 
-static PyMethodDef AuthBindMethods[] = {
-        { "get_credentials", get_credentials, METH_VARARGS,
-          "Get opaque credentials object or continuation credentials." },
-        { "authenticate", authenticate, METH_VARARGS,
-          "Authenticate credentials provided by a client." },
-        { "get_parms", get_parms, METH_VARARGS,
-          "Get a security token for a login response." },
-        { NULL, NULL, 0, NULL } /* Sentinel */
+static PyMethodDef AuthBindMethods[] =
+{
+{ "get_credentials", get_credentials, METH_VARARGS,
+    "Get opaque credentials object or continuation credentials." },
+{ "authenticate", authenticate, METH_VARARGS,
+    "Authenticate credentials provided by a client." },
+{ "get_parms", get_parms, METH_VARARGS,
+    "Get a security token for a login response." },
+{ NULL, NULL, 0, NULL } /* Sentinel */
 };
 
-PyMODINIT_FUNC initXrdAuthBind(void) {
-    (void) Py_InitModule("XrdImposter.XrdAuthBind", AuthBindMethods);
+PyMODINIT_FUNC initXrdAuthBind(void)
+{
+PyObject* authbind = Py_InitModule("authbind", AuthBindMethods);
 
-    // Set some environment vars
-    setenv("XRDINSTANCE", "imposter", 1);
-    setenv("XrdSecDEBUG", "1", 1);
+// Set some environment vars
+setenv("XRDINSTANCE", "imposter", 1);
+setenv("XrdSecDEBUG", "1", 1);
+
+AuthenticationError = PyErr_NewException("authbind.AuthenticationError", NULL,
+        NULL);
+PyModule_AddObject(authbind, "AuthenticationError", AuthenticationError);
 }

@@ -24,7 +24,8 @@ import tempfile
 import XProtocol
 import MessageHelper
 
-from XrdAuthBind import get_credentials, authenticate, get_parms
+from XrdAuthBind import get_credentials, authenticate, get_parms, \
+                        AuthenticationError
 from Utils import get_struct, get_requestid, get_responseid
 
 class AuthHelper:
@@ -82,9 +83,9 @@ class AuthHelper:
     some continuation credentials."""
     try:
       credname, creds = get_credentials(authtoken, contcred, seclib, sockfd)
-    except IOError, e:
+    except AuthenticationError, e:
       print "[!] Error getting credentials:", e
-      sys.exit(1)
+      raise e
     return credname, creds, len(creds)
 
   def getsectoken(self):
@@ -92,10 +93,9 @@ class AuthHelper:
     try:
       token = get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
                      self.context['seclib'])
-    except IOError, e:
+    except AuthenticationError, e:
       print "[!] Error getting security token:", e
-      sys.exit(1)
-
+      raise e
     return token
 
   def auth(self, cred):
@@ -105,6 +105,7 @@ class AuthHelper:
                    'sec.protocol ' + self.context['sec.protocol'] + '\n',
                    self.context['socket'].fileno())
       return contparams if contparams else None
-    except IOError, e:
+    except AuthenticationError, e:
       print "[!] Error authenticating:", e
-      sys.exit(1)
+      raise e
+

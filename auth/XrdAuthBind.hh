@@ -33,6 +33,8 @@
 #include <XrdSys/XrdSysLogger.hh>
 
 
+PyObject* AuthenticationError;
+
 XrdSecProtocol *authProtocol;
 XrdOucEnv *authEnv;
 XrdSysLogger logger;
