@@ -16,35 +16,35 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-from lib.ImposterServer import ImposterServer
-from lib.XProtocol import XResponseType
+from XrdImposter.ImposterServer import ImposterServer
+from XrdImposter.XProtocol import XResponseType
 
 class XRootDLogInServer:
   @classmethod
   def getDescription( cls ):
     return { 'type': 'Passive', 'ip': '0.0.0.0', 'port': 1094, 'clients': 1, 
-             'seclib': 'libXrdSec.so', 'sec.protocol': 'gsi' }
+             'seclib': 'libXrdSec.so', 'sec.protocol': 'gsi -d:3' }
+
 
   def __call__( self, context ):
     server = ImposterServer(context)
-    
+
     # The following line will to the equivalent of the rest of this method,
     # using sensible default values and optionally fully authenticating.
     #
     # server.do_full_handshake(verify_auth=True)
-    
     for request in server.receive():
-      
+
       if request.type == 'handshake':
         print request
         # Send handshake + protocol at the same time
         server.send(server.handshake() 
                   + server.kXR_protocol(streamid=request.streamid))
-      
+
       elif request.type == 'kXR_login':
         print request
         server.send(server.kXR_login(streamid=request.streamid))
-        
+
       elif request.type == 'kXR_auth':
         # Authenticate this request's credentials and potentially get
         # continuation (authmore) parameters
@@ -56,17 +56,14 @@ class XRootDLogInServer:
         else:
           # We are done authenticating
           response = server.kXR_ok(streamid=request.streamid)
-        
+
         server.send(response)
         # If we have contparams, there will be more auth-related requests 
         # to receive at this stage. Otherwise, we are done
         if not contparams: continue
-      
+
       elif request.type == 'kXR_stat':
         print request
         server.send(server.kXR_stat())
-    
+
     server.close()
-    
-    
-    

@@ -24,14 +24,14 @@ import tempfile
 import XProtocol
 import MessageHelper
 
-from authbind import get_credentials, authenticate, get_parms
+from XrdAuthBind import get_credentials, authenticate, get_parms
 from Utils import get_struct, get_requestid, get_responseid
 
 class AuthHelper:
   """Class to aid sending/receiving xrootd authentication requests/responses,
   generating security tokens/credentials and authenticating client 
   credentials."""
-  
+
   def __init__(self, context):
     self.context = context
     self.mh = MessageHelper.MessageHelper(context)
@@ -40,18 +40,18 @@ class AuthHelper:
                     requestid=None, reserved=None, credtype=None, dlen=None, 
                     cred=None):
     """Return a packed kXR_auth request."""
-    
+
     if not authtoken and not contcred:
       print "[!] Can't build kXR_auth request: no auth token or continuation \
             credentials supplied"
       sys.exit(1)
-      
+
     credname, credentials, credlen = \
     self.getcredentials(authtoken,
                         contcred,
                         self.context['seclib'],
                         self.context['socket'].fileno())
-    
+
     request_struct = get_struct('ClientAuthRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -60,22 +60,22 @@ class AuthHelper:
      'credtype'  : credtype  if credtype   else credname.ljust(4, '\0'),
      'dlen'      : dlen      if dlen       else credlen,
      'cred'      : cred      if cred       else credentials}
-    
+
     return self.mh.build_message(request_struct, params)
-  
+
   def build_response(self, cred=None, streamid=None, status=None, dlen=None):
     """Return a packed kXR_auth response."""
     if cred:
       self.auth(cred)
-    
+
     response_struct = get_struct('ServerResponseHeader')                     
     params = \
     {'streamid'  : streamid  if streamid   else 0,
      'status'    : status    if status     else XProtocol.XResponseType.kXR_ok,
      'dlen'      : dlen      if dlen       else 0}
-    
+
     return self.mh.build_message(response_struct, params)
-  
+
   def getcredentials(self, authtoken, contcred, seclib, sockfd):
     """Return opaque credentials after acquiring them from the xrootd
     security interface. These can be either the initial credentials or
@@ -86,7 +86,7 @@ class AuthHelper:
       print "[!] Error getting credentials:", e
       sys.exit(1)
     return credname, creds, len(creds)
-  
+
   def getsectoken(self):
     """Return the security token to be sent in a kXR_login response."""
     try:
@@ -95,9 +95,9 @@ class AuthHelper:
     except IOError, e:
       print "[!] Error getting security token:", e
       sys.exit(1)
-    
+
     return token
-  
+
   def auth(self, cred):
     """Authenticate the given opaque credentials."""
     try:
@@ -108,4 +108,3 @@ class AuthHelper:
     except IOError, e:
       print "[!] Error authenticating:", e
       sys.exit(1)
-    

@@ -31,20 +31,20 @@ def flatten(*args):
         yield y
     else:
       yield x
-      
+
 def format_length(format):
   """Return the length in bytes of the given struct format string."""
   mapping = {'c': 1, 's': 1, 'B': 1, 'H': 2, 'l': 4, 'q': 8}
   groups = re.findall('\d*[csBHlq]', format)
   length = 0
-  
+
   for g in groups:
     if len(g) > 1:
       length += int(g[:-1]) * mapping[g[-1]]
     else:
       length += mapping[g[-1]]
   return length 
-    
+
 def struct_format(struct):
   """Return the complete format string for the given struct."""
   format = '>'
@@ -57,7 +57,7 @@ def struct_format(struct):
         format += (str(member['size']) + member['type'])
     else:
       format += member['type']
-  
+
   return format
 
 def gen_sessid():
@@ -69,7 +69,7 @@ def get_struct(name):
   if hasattr(XProtocol, name):
     struct = getattr(XProtocol, name)
     return copy.copy(struct)
-  
+
 def get_requestid(requestid):
   """Return the integer request ID associated with the given string request ID, 
   or the other way around.""" 
@@ -77,14 +77,14 @@ def get_requestid(requestid):
     if hasattr(XProtocol.XRequestTypes, requestid):
       return getattr(XProtocol.XRequestTypes, requestid)
   except: pass
-  
+
   try:
     return XProtocol.XRequestTypes.reverse_mapping[requestid]
   except: pass
-  
+
   print "[!] Unknown request ID:", requestid
   sys.exit(1)
-  
+
 def get_responseid(responseid):
   """Return the string response ID associated with the given integer response 
   ID, or the other way around."""
@@ -92,11 +92,11 @@ def get_responseid(responseid):
     if hasattr(XProtocol.XResponseType, responseid):
       return getattr(XProtocol.XResponseType, responseid)
   except: pass
-  
+
   try:
     return XProtocol.XResponseType.reverse_mapping[responseid]
   except: pass
-  
+
   print "[!] Unknown response ID:", responseid
   sys.exit(1)
 
@@ -107,12 +107,10 @@ def get_attncode(attncode):
     if hasattr(XProtocol.XActionCode, attncode):
       return getattr(XProtocol.XActionCode, attncode)
   except: pass
-  
+
   try:
     return XProtocol.XActionCode.reverse_mapping[attncode]
   except: pass
-  
+
   print "[!] Unknown attn code:", attncode
   sys.exit(1)
-  
-

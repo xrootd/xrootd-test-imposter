@@ -26,9 +26,8 @@ from Utils import flatten, struct_format, format_length, get_requestid, \
 
 import XProtocol
 
-
 class MessageHelper:
-  
+
   def __init__(self, context):
     self.sock = context['socket']
 
@@ -38,10 +37,10 @@ class MessageHelper:
     if not len(params) == len(message_struct):
       print "[!] Error building message: wrong number of parameters"
       sys.exit(1)
-      
+
     message = tuple()
     format = '>'
-    
+
     for member in message_struct:
       message += (params[member['name']],)
       if member.has_key('size'):
@@ -55,10 +54,10 @@ class MessageHelper:
           format += str(member['size']) + member['type']
       else: 
         format += member['type']
-    
+
     message = tuple(flatten(message))
     return struct.pack(format, *message)
-    
+
   def send_message(self, message):
     """Send a packed binary message."""
     try:
@@ -66,7 +65,7 @@ class MessageHelper:
     except socket.error, e:
       print 'Error sending message: %s' % e
       sys.exit(1)
-  
+
   def receive_message(self):
     """"""
     try:  
@@ -75,13 +74,13 @@ class MessageHelper:
       print 'Error receiving message: %s' % e
       sys.exit(1)
     return message   
-  
+
   def unpack_response(self, response_raw, request_raw):
     """Return an unpacked named tuple representation of a server response."""    
     # Unpack the request that generated this response for reference
     request = self.unpack_request(request_raw)
     requestid = get_requestid(request.type)
-    
+
     # Unpack the response header to find the status and data length
     header_struct = get_struct('ServerResponseHeader')
     format = '>' 
@@ -112,10 +111,10 @@ class MessageHelper:
     else:
       body_struct = get_struct('ServerResponseBody_' \
                                + request.type[4:].title())
-      
+
     if not body_struct: body_struct = list()
     response_struct = header_struct + body_struct
-          
+
     # The number of params in a kXR_open response depends on the options that
     # were passed in the request.
     if requestid == XProtocol.XRequestTypes.kXR_open:
@@ -123,7 +122,7 @@ class MessageHelper:
       # the request.
       response_struct[:] = [m for m in response_struct 
                             if self.option_included(m, request, response_raw)]
-    
+
     # Build complete format string
     format = '>'
     for member in response_struct:
@@ -137,10 +136,10 @@ class MessageHelper:
           format += str(member['size']) + member['type']
       else: 
         format += member['type']
-    
+
     if len(body_struct) == 0 and dlen > 0:
       format += (str(dlen) + 's')
-    
+
     # Unpack to regular tuple
     response_tuple = struct.unpack(format, response_raw)  
     # Convert to named tuple
@@ -149,15 +148,15 @@ class MessageHelper:
     response = namedtuple('response', 
                           ' '.join([m['name'] for m in response_struct]))
     return response(type, *response_tuple)
-  
+
   def unpack_request(self, request_raw):
     """Return an unpacked named tuple representation of a client request."""
     if not len(request_raw): return
-    
+
     # Unpack the header to find the request ID
     requestid = struct.unpack('>HH' + (str(len(request_raw) - 4) + 's'), 
                            request_raw)[1]
-    
+
     # Check if this is a handshake request
     if requestid == XProtocol.XRequestTypes.handshake:
       request_struct = get_struct('ClientInitHandShake')
@@ -165,7 +164,7 @@ class MessageHelper:
       request_type = XProtocol.XRequestTypes.reverse_mapping[requestid]
       request_struct = get_struct('Client' + request_type[4:].title() 
                                      + 'Request')
-      
+
     # Check if another request is being piggybacked
     if len(request_raw) > format_length(struct_format(request_struct)):
       format = struct_format(request_struct) + 'HH'
@@ -175,7 +174,7 @@ class MessageHelper:
       request_type_2 = XProtocol.XRequestTypes.reverse_mapping[requestid_2]
       request_struct += get_struct('Client' + request_type_2[4:].title()  
                                    + 'Request')
-  
+
     # Build the complete format string
     format = '>'
     for member in request_struct:
@@ -187,21 +186,21 @@ class MessageHelper:
           format += str(member['size']) + member['type']
       else: 
         format += member['type']
-    
+
     # Unpack to a regular tuple
     request_tuple = struct.unpack(format, request_raw)
-    
+
     # Convert to named tuple
     request_struct.insert(0, {'name': 'type'})
     if requestid == XProtocol.XRequestTypes.handshake:
       type = 'handshake'
     else:
       type = get_requestid(requestid)
-    
+
     request = namedtuple('request', 
                          ' '.join([m['name'] for m in request_struct]))
     return request(type, *request_tuple) 
-      
+
   def option_included(self, member, request, response_raw):
     """Return whether or not the given member will be in the given packed
     response, based upon the options bitmask in the request, and the size of
@@ -209,7 +208,7 @@ class MessageHelper:
     if request.options & XProtocol.XOpenRequestOption.kXR_retstat:
       if member['name'] in ('cpsize', 'cptype', 'data'):
         return True
-    
+
     if request.options & XProtocol.XOpenRequestOption.kXR_compress:
       if member['name'] in ('cpsize', 'cptype'):
         if len(response_raw) > 12:
@@ -217,9 +216,7 @@ class MessageHelper:
         else: return False
       elif member['name'] == 'data':
         return False
-    
+
     if member['name'] in ('cpsize', 'cptype', 'data'):
       return False
     else: return True
-    
-    

@@ -16,8 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-from lib.ImposterClient import ImposterClient
-from lib.XProtocol import XResponseType
+from XrdImposter.ImposterClient import ImposterClient
+from XrdImposter.XProtocol import XResponseType
 
 class XRootDLogInClient:
   @classmethod
@@ -27,31 +27,30 @@ class XRootDLogInClient:
 
   def __call__(self, context):
     client = ImposterClient(context)
-    
+
     # The following line will to the equivalent of the rest of this method,
     # using sensible default values.
     #
     # sess_id = client.do_full_handshake()
-    
     handshake_request = client.handshake()
     client.send(handshake_request)
     response_raw = client.receive()
     response = client.unpack(response_raw, handshake_request)
     print response
-    
+
     protocol_request = client.kXR_protocol()
     client.send(protocol_request)
     response_raw = client.receive()
     response = client.unpack(response_raw, protocol_request)
     print response
-    
+
     login_request = client.kXR_login(username='imposter')
     client.send(login_request)
     response_raw = client.receive()
     response = client.unpack(response_raw, login_request)
     sessid = response.sessid
     print response
-    
+
     # Check if we need to auth
     if len(response.sec):
       auth_request = client.kXR_auth(authtoken=response.sec)
@@ -59,7 +58,7 @@ class XRootDLogInClient:
       response_raw = client.receive()
       response = client.unpack(response_raw, auth_request)
       print response
-    
+
       # Check if we need to authmore
       while response.status == XResponseType.kXR_authmore:
         print "More authentication needed, continuing"
@@ -68,15 +67,8 @@ class XRootDLogInClient:
         response_raw = client.receive()
         response = client.unpack(response_raw, auth_request)
         print response
-      
+
     if response.status == XResponseType.kXR_ok:
       print "Logged in successfully"
     else:
       print "Login failed (%s): %s" % (response.status, response.errmsg)
-    
-    
-    
-    
-    
-    
-    
