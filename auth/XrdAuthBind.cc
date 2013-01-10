@@ -28,8 +28,7 @@ using namespace std;
  *         PyErr_SetString will also be called, so the calling function can
  *         return NULL and propagate this error.
  */
-void *
-openLibrary(const char* libName)
+void *openLibrary(const char* libName)
 {
     std::stringstream err;
     void *libHandle = ::dlopen(libName, RTLD_NOW);
@@ -49,8 +48,7 @@ openLibrary(const char* libName)
  * @param data pointer to the char data to write to the file.
  * @return the filename of the newly created temporary file.
  */
-const char *
-writeTempFile(const char* data)
+const char *writeTempFile(const char* data)
 {
     const char *tempFileName = tmpnam(NULL);
     ofstream out(tempFileName);
@@ -85,8 +83,7 @@ void getPeerName(int sock)
     getpeername(sock, (sockaddr*) sockadd, &socklen);
 }
 
-extern "C"
-{
+extern "C" {
 
 /**
  * Build a security token to send as a response to a kXR_login request,
@@ -370,24 +367,24 @@ static PyObject* get_credentials(PyObject *self, PyObject *args)
 
 static PyMethodDef AuthBindMethods[] =
 {
-{ "get_credentials", get_credentials, METH_VARARGS,
-    "Get opaque credentials object or continuation credentials." },
-{ "authenticate", authenticate, METH_VARARGS,
-    "Authenticate credentials provided by a client." },
-{ "get_parms", get_parms, METH_VARARGS,
-    "Get a security token for a login response." },
-{ NULL, NULL, 0, NULL } /* Sentinel */
+    { "get_credentials", get_credentials, METH_VARARGS,
+      "Get opaque credentials object or continuation credentials." },
+    { "authenticate", authenticate, METH_VARARGS,
+      "Authenticate credentials provided by a client." },
+    { "get_parms", get_parms, METH_VARARGS,
+      "Get a security token for a login response." },
+    { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
 PyMODINIT_FUNC initXrdAuthBind(void)
 {
-PyObject* authbind = Py_InitModule("authbind", AuthBindMethods);
+    PyObject* authbind = Py_InitModule("authbind", AuthBindMethods);
 
-// Set some environment vars
-setenv("XRDINSTANCE", "imposter", 1);
-setenv("XrdSecDEBUG", "1", 1);
+    // Set some environment vars
+    setenv("XRDINSTANCE", "imposter", 1);
+    setenv("XrdSecDEBUG", "1", 1);
 
-AuthenticationError = PyErr_NewException("authbind.AuthenticationError", NULL,
-        NULL);
-PyModule_AddObject(authbind, "AuthenticationError", AuthenticationError);
+    AuthenticationError = PyErr_NewException("authbind.AuthenticationError", NULL,
+            NULL);
+    PyModule_AddObject(authbind, "AuthenticationError", AuthenticationError);
 }
