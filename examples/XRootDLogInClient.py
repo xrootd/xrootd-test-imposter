@@ -22,8 +22,12 @@ from XrdImposter.XProtocol import XResponseType
 class XRootDLogInClient:
   @classmethod
   def getDescription(cls):
+    config = """
+    xrootd.seclib /usr/lib64/libXrdSec.so
+    """
+
     return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 
-             'clients': 1, 'seclib': 'libXrdSec.so' }
+             'clients': 1, 'config': config }
 
   def __call__(self, context):
     client = ImposterClient(context)

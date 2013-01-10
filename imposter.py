@@ -50,11 +50,13 @@ def runPassive( scenario ):
   # Get the necessary information from the scenario description
   #-----------------------------------------------------------------------------
   desc = scenario.getDescription()
+  context = dict()
 
   try:
     listenIP   = desc['ip']
     listenPort = desc['port']
     numClients = desc['clients']
+    config     = desc['config']
   except KeyError, err:
     print "[!] Info missing in scenario description:", err
     return 10
@@ -74,12 +76,8 @@ def runPassive( scenario ):
   threads = []
   for i in range( numClients ):
     (clientSocket, address) = serverSocket.accept()
-    context = {'socket': clientSocket, 'address': address, 'number': i}
-    
-    if desc.has_key('seclib'):
-      context.update({'seclib': desc['seclib']})
-    if desc.has_key('sec.protocol'):
-      context.update({'sec.protocol': desc['sec.protocol']})
+    context = {'socket': clientSocket, 'address': address, 'number': i, 
+               'config': config}
 
     scObj = scenario()
     if not callable( scObj ):
@@ -108,6 +106,7 @@ def runActive( scenario ):
     hostName   = desc['hostname']
     hostPort   = desc['port']
     numClients = desc['clients']
+    config     = desc['config']
   except KeyError, err:
     print "[!] Info missing in scenario description:", err
     return 10
@@ -125,10 +124,7 @@ def runActive( scenario ):
       print "[!] Socket error:", err
       return 11
 
-    context = {'socket': clientSocket, 'streamid': i}
-    
-    if desc.has_key('seclib'):
-      context.update({'seclib': desc['seclib']})
+    context = {'socket': clientSocket, 'streamid': i, 'config': config}
 
     scObj = scenario()
     if not callable( scObj ):

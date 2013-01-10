@@ -86,6 +86,14 @@ void getPeerName(int sock)
 extern "C" {
 
 /**
+ *
+ */
+static PyObject* init(PyObject *self, PyObject *args)
+{
+    return Py_BuildValue("");
+}
+
+/**
  * Build a security token to send as a response to a kXR_login request,
  * if the given sec.protocol configuration directive is not empty.
  *
@@ -102,7 +110,7 @@ static PyObject* get_parms(PyObject *self, PyObject *args)
 
     // Parse the python parameters
     if (!PyArg_ParseTuple(args, "ss", &config, &authLibName))
-    return NULL;
+        return NULL;
 
     // dlopen the library
     if (!(libHandle = openLibrary(authLibName)))
@@ -278,7 +286,7 @@ static PyObject* get_credentials(PyObject *self, PyObject *args)
     // Parse the python parameters
     if (!PyArg_ParseTuple(args, "z#z#si", &authToken, &authTokenLen, &contCred,
                     &contCredLen, &authLibName, &sock))
-    return NULL;
+        return NULL;
 
     // Prepare some variables
     authEnv = new XrdOucEnv();
@@ -367,6 +375,7 @@ static PyObject* get_credentials(PyObject *self, PyObject *args)
 
 static PyMethodDef AuthBindMethods[] =
 {
+    { "init", init, METH_VARARGS, "Initialize authentication bindings"},
     { "get_credentials", get_credentials, METH_VARARGS,
       "Get opaque credentials object or continuation credentials." },
     { "authenticate", authenticate, METH_VARARGS,
@@ -378,13 +387,13 @@ static PyMethodDef AuthBindMethods[] =
 
 PyMODINIT_FUNC initXrdAuthBind(void)
 {
-    PyObject* authbind = Py_InitModule("authbind", AuthBindMethods);
+    PyObject* XrdAuthBind = Py_InitModule("XrdAuthBind", AuthBindMethods);
 
     // Set some environment vars
     setenv("XRDINSTANCE", "imposter", 1);
     setenv("XrdSecDEBUG", "1", 1);
 
-    AuthenticationError = PyErr_NewException("authbind.AuthenticationError", NULL,
-            NULL);
-    PyModule_AddObject(authbind, "AuthenticationError", AuthenticationError);
+    AuthenticationError = PyErr_NewException("XrdAuthBind.AuthenticationError",
+            NULL, NULL);
+    PyModule_AddObject(XrdAuthBind, "AuthenticationError", AuthenticationError);
 }

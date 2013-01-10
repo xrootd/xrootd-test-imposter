@@ -19,12 +19,12 @@
 import sys
 import socket
 import struct
-import tempfile
+import re
 
 import XProtocol
 import MessageHelper
 
-from XrdAuthBind import get_credentials, authenticate, get_parms, \
+from XrdAuthBind import init, get_credentials, authenticate, get_parms, \
                         AuthenticationError
 from Utils import get_struct, get_requestid, get_responseid
 
@@ -35,7 +35,10 @@ class AuthHelper:
 
   def __init__(self, context):
     self.context = context
+    self.seclib = self._extract_seclib_path(self.context['config'])
     self.mh = MessageHelper.MessageHelper(context)
+    # Initialize the auth binding extension
+    init(self.seclib, self.context['config'])
 
   def build_request(self, authtoken=None, contcred=None, streamid=None, 
                     requestid=None, reserved=None, credtype=None, dlen=None, 
@@ -48,10 +51,7 @@ class AuthHelper:
       sys.exit(1)
 
     credname, credentials, credlen = \
-    self.getcredentials(authtoken,
-                        contcred,
-                        self.context['seclib'],
-                        self.context['socket'].fileno())
+    self.getcredentials(authtoken, contcred, self.context['socket'].fileno())
 
     request_struct = get_struct('ClientAuthRequest')
     params = \
@@ -69,7 +69,7 @@ class AuthHelper:
     if cred:
       self.auth(cred)
 
-    response_struct = get_struct('ServerResponseHeader')                     
+    response_struct = get_struct('ServerResponseHeader')
     params = \
     {'streamid'  : streamid  if streamid   else 0,
      'status'    : status    if status     else XProtocol.XResponseType.kXR_ok,
@@ -77,12 +77,15 @@ class AuthHelper:
 
     return self.mh.build_message(response_struct, params)
 
-  def getcredentials(self, authtoken, contcred, seclib, sockfd):
+  #=============================================================================
+  # Authentication binding function wrappers
+  #=============================================================================
+  def getcredentials(self, authtoken, contcred, sockfd):
     """Return opaque credentials after acquiring them from the xrootd
     security interface. These can be either the initial credentials or
     some continuation credentials."""
     try:
-      credname, creds = get_credentials(authtoken, contcred, seclib, sockfd)
+      credname, creds = get_credentials(authtoken, contcred, sockfd)
     except AuthenticationError, e:
       print "[!] Error getting credentials:", e
       raise e
@@ -91,8 +94,7 @@ class AuthHelper:
   def getsectoken(self):
     """Return the security token to be sent in a kXR_login response."""
     try:
-      token = get_parms('sec.protocol ' + self.context['sec.protocol'] + '\n',
-                     self.context['seclib'])
+      token = get_parms(self.context['config'])
     except AuthenticationError, e:
       print "[!] Error getting security token:", e
       raise e
@@ -101,11 +103,19 @@ class AuthHelper:
   def auth(self, cred):
     """Authenticate the given opaque credentials."""
     try:
-      contparams = authenticate(cred, self.context['seclib'],
-                   'sec.protocol ' + self.context['sec.protocol'] + '\n',
+      contparams = authenticate(cred, self.context['config'],
                    self.context['socket'].fileno())
       return contparams if contparams else None
     except AuthenticationError, e:
       print "[!] Error authenticating:", e
       raise e
 
+  def _extract_seclib_path(self, config):
+    """Return the path to libXrdSec from the given config file. It's easier
+    to do it here than in the extension."""
+    _match = re.match('^\s*(xrootd.seclib\s.*)$', config, re.MULTILINE)
+    if not _match:
+      raise AuthenticationError('xrootd.seclib not specified in config')
+    else:
+      return _match.groups()[0]
+    
