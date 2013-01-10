@@ -27,10 +27,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "xrootd/XrdSec/XrdSecInterface.hh"
-#include "xrootd/XrdOuc/XrdOucEnv.hh"
-#include "xrootd/XrdOuc/XrdOucErrInfo.hh"
-#include "xrootd/XrdSys/XrdSysLogger.hh"
+#include <XrdSec/XrdSecInterface.hh>
+#include <XrdOuc/XrdOucEnv.hh>
+#include <XrdOuc/XrdOucErrInfo.hh>
+#include <XrdSys/XrdSysLogger.hh>
 
 
 XrdSecProtocol *authProtocol;

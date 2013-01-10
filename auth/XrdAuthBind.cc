@@ -16,7 +16,7 @@
 // along with XRootD.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
-#include "authbind.hh"
+#include "XrdAuthBind.hh"
 
 using namespace std;
 
@@ -60,11 +60,24 @@ const char *writeTempFile(const char* data) {
  *
  * @param sock the socket file descriptor to use.
  */
-void createSock(int sock) {
+void getSockName(int sock) {
     socklen_t socklen = sizeof(struct sockaddr_in);
     sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
     getsockname(sock, (sockaddr*) sockadd, &socklen);
 }
+
+/**
+ * Fill a sockaddr_in struct from the socket descriptor given using
+ * getpeername().
+ *
+ * @param sock the socket file descriptor to use.
+ */
+void getPeerName(int sock) {
+    socklen_t socklen = sizeof(struct sockaddr_in);
+    sockadd = (sockaddr_in*) malloc(sizeof(struct sockaddr_in));
+    getpeername(sock, (sockaddr*) sockadd, &socklen);
+}
+
 
 
 extern "C" {
@@ -112,6 +125,8 @@ static PyObject* get_parms(PyObject *self, PyObject *args) {
     if (!securityService) {
         err << "Unable to create security service" << endl;
         PyErr_SetString(PyExc_IOError, err.str().c_str());
+        ::dlclose(libHandle);
+        libHandle = 0;
         return NULL;
     }
 
@@ -162,7 +177,7 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
     authEnv->Put("sockname", "");
     XrdOucErrInfo ei("", authEnv);
     credentials = new XrdSecCredentials((char*) creds, credsLen);
-    createSock(sock);
+    getPeerName(sock);
 
     // dlopen the library
     if (!(libHandle = openLibrary(authLibName))) {
@@ -195,7 +210,7 @@ static PyObject* authenticate(PyObject *self, PyObject *args) {
     // Get the protocol (unless it already exists)
     if (!authProtocol) {
         authProtocol = securityService->getProtocol((const char *) host,
-                (const sockaddr &) sockadd,
+                (const sockaddr &)*sockadd,
                 (const XrdSecCredentials *) credentials, &ei);
     }
 
@@ -258,7 +273,7 @@ static PyObject* get_credentials(PyObject *self, PyObject *args) {
     authEnv = new XrdOucEnv();
     authEnv->Put("sockname", "");
     XrdOucErrInfo ei("", authEnv);
-    createSock(sock);
+    getSockName(sock);
 
     if (authToken != NULL) {
         authParams = new XrdSecParameters((char*) authToken, authTokenLen);
@@ -343,8 +358,8 @@ static PyMethodDef AuthBindMethods[] = {
         { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
-PyMODINIT_FUNC initauthbind(void) {
-    (void) Py_InitModule("authbind", AuthBindMethods);
+PyMODINIT_FUNC initXrdAuthBind(void) {
+    (void) Py_InitModule("XrdImposter.XrdAuthBind", AuthBindMethods);
 
     // Set some environment vars
     setenv("XRDINSTANCE", "imposter", 1);
