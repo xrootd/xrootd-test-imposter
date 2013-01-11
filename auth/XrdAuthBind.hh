@@ -18,6 +18,7 @@
 
 #include <Python.h>
 #include <string>
+#include <map>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -31,14 +32,16 @@
 #include <XrdOuc/XrdOucEnv.hh>
 #include <XrdOuc/XrdOucErrInfo.hh>
 #include <XrdSys/XrdSysLogger.hh>
+#include <XrdSys/XrdSysPthread.hh>
 
-// Custom exception
-PyObject* AuthenticationError;
+// This will become true when init() is called
+bool pInitialized = false;
 
-XrdSecProtocol *authProtocol;
+std::map<int, XrdSecProtocol*> pAuthProtocols;
+XrdSysMutex pMutex;
+
 XrdOucEnv *pAuthEnv;
-XrdSysLogger logger;
-std::string protocolName;
+XrdSysLogger pLogger;
 
 const char *host = "localhost";
 const char *pTempConfigFile;
@@ -46,12 +49,12 @@ const char *pAuthLibName;
 const char *pSecurityToken;
 void *pAuthLibHandle;
 
-int sock;
-struct sockaddr_in *sockadd;
-
 // Authentication function handles
 typedef XrdSecProtocol *(*XrdSecGetProt_t)(const char *, const sockaddr &,
         const XrdSecParameters &, XrdOucErrInfo *);
 typedef XrdSecService *(*XrdSecGetServ_t)(XrdSysLogger *, const char *);
+
+// Custom exception
+static PyObject* AuthenticationError;
 
 

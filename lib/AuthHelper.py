@@ -36,10 +36,9 @@ class AuthHelper:
 
   def __init__(self, context):
     self.context = context
-    self.seclib = self._extract_seclib_path(self.context['config'])
     self.mh = MessageHelper.MessageHelper(context)
     # Initialize the auth binding extension
-    init(self.context['config'], self.seclib)
+    self.init(self.context['config'])
 
   def build_request(self, authtoken=None, contcred=None, streamid=None, 
                     requestid=None, reserved=None, credtype=None, dlen=None, 
@@ -81,31 +80,39 @@ class AuthHelper:
   #=============================================================================
   # Authentication binding function wrappers
   #=============================================================================
+  def init(self, config):
+    """Initialize the XrdAuthBind extension."""
+    try:
+      seclib = self._extract_seclib_path(config)
+      init(config, seclib)
+    except AuthenticationError, e:
+      print "[!] Error initializing XrdAuthBind extension: ", e
+      raise e
+    
   def getcredentials(self, authtoken, contcred, sockfd):
     """Return opaque credentials after acquiring them from the xrootd
     security interface. These can be either the initial credentials or
     some continuation credentials."""
     try:
       credname, creds = get_credentials(authtoken, contcred, sockfd)
+      return credname, creds, len(creds)
     except AuthenticationError, e:
       print "[!] Error getting credentials:", e
       raise e
-    return credname, creds, len(creds)
 
   def getsectoken(self):
     """Return the security token to be sent in a kXR_login response."""
     try:
-      token = get_parms(self.context['config'])
+      token = get_parms()
+      return token
     except AuthenticationError, e:
       print "[!] Error getting security token:", e
       raise e
-    return token
 
   def auth(self, cred):
     """Authenticate the given opaque credentials."""
     try:
-      contparams = authenticate(cred, self.context['config'],
-                   self.context['socket'].fileno())
+      contparams = authenticate(cred, self.context['socket'].fileno())
       return contparams if contparams else None
     except AuthenticationError, e:
       print "[!] Error authenticating:", e

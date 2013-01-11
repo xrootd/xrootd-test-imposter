@@ -27,7 +27,7 @@ class XRootDLogInClient:
     """
 
     return { 'type': 'Active', 'hostname': 'localhost', 'port': 1094, 
-             'clients': 1, 'config': config }
+             'clients': 5, 'config': config }
 
   def __call__(self, context):
     client = ImposterClient(context)
@@ -65,7 +65,7 @@ class XRootDLogInClient:
 
       # Check if we need to authmore
       while response.status == XResponseType.kXR_authmore:
-        print "More authentication needed, continuing"
+        print 'Client %s: more authentication needed' % context['streamid']
         auth_request = client.kXR_auth(contcred=response.data)
         client.send(auth_request)
         response_raw = client.receive()
@@ -73,6 +73,7 @@ class XRootDLogInClient:
         print response
 
     if response.status == XResponseType.kXR_ok:
-      print "Logged in successfully"
+      print "Client %s: logged in successfully" % context['streamid']
     else:
-      print "Login failed (%s): %s" % (response.status, response.errmsg)
+      print "Client %S: login failed (%s): %s" % \
+            (context['streamid'], response.status, response.errmsg)

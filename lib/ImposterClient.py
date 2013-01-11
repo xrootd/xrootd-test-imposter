@@ -78,7 +78,7 @@ class ImposterClient:
 
       # Check if we need to authmore
       while response.status == XProtocol.XResponseType.kXR_authmore:
-        print "More authentication needed, continuing"
+        print 'Client %s: more authentication needed' % self.context['streamid']
         auth_request = self.kXR_auth(contcred=response[-1])
         self.send(auth_request)
         response_raw = self.receive()
