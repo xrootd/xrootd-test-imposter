@@ -165,15 +165,11 @@ class MessageHelper:
       request_struct = get_struct('Client' + request_type[4:].title() 
                                      + 'Request')
 
-    # Check if another request is being piggybacked
+    # Check if another request is being piggybacked.
+    pending_req = None
     if len(request_raw) > format_length(struct_format(request_struct)):
-      format = struct_format(request_struct) + 'HH'
-      requestid_2 = struct.unpack(format + str(len(request_raw) 
-                                               - format_length(format)) + 's', 
-                                  request_raw)[-2]
-      request_type_2 = XProtocol.XRequestTypes.reverse_mapping[requestid_2]
-      request_struct += get_struct('Client' + request_type_2[4:].title()  
-                                   + 'Request')
+        pending_req = request_raw[format_length(struct_format(request_struct)):]
+        request_raw = request_raw[:format_length(struct_format(request_struct))]
 
     # Build the complete format string
     format = '>'
@@ -199,7 +195,7 @@ class MessageHelper:
 
     request = namedtuple('request', 
                          ' '.join([m['name'] for m in request_struct]))
-    return request(type, *request_tuple) 
+    return request(type, *request_tuple), pending_req
 
   def option_included(self, member, request, response_raw):
     """Return whether or not the given member will be in the given packed

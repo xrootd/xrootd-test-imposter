@@ -31,6 +31,7 @@ class ImposterServer:
   def __init__(self, context):
     self.context = context    
     self.mh = MessageHelper.MessageHelper(context)
+    self.pending_request = None
 
   def send(self, response):
     """Send a packed xrootd response."""
@@ -39,7 +40,11 @@ class ImposterServer:
   def receive(self):
     """Receive a packed xrootd request (iterable generator method)"""
     while True:
-      request = self.unpack(self.mh.receive_message())
+      if self.pending_request:
+        request = self.unpack(self.pending_request)
+        self.pending_request = None
+      else: 
+          request = self.unpack(self.mh.receive_message())
       if request:
         yield request
       else: break
@@ -50,7 +55,11 @@ class ImposterServer:
 
   def unpack(self, request_raw):
     """Return an unpacked named tuple representation of a client request."""
-    return self.mh.unpack_request(request_raw)
+    request = self.mh.unpack_request(request_raw)
+    if not request: return request
+    # If two messages were sent, cache the second
+    if request[1]: self.pending_request = request[1]
+    return request[0]
 
   def do_full_handshake(self, verify_auth=False):
     """Perform handshake/protocol/login/auth/authmore sequence with default 
@@ -353,7 +362,7 @@ class ImposterServer:
      'data'    : data}
     return self.mh.build_message(response_struct, params)
 
-  def KXR_oksofar(self, streamid=None, status=None, dlen=None, data=None):
+  def kXR_oksofar(self, streamid=None, status=None, dlen=None, data=None):
     """Return a packed representation of a kXR_oksofar response."""
     status = get_responseid('kXR_oksofar')
     return self.kXR_ok(streamid, status, dlen, data)
