@@ -151,14 +151,16 @@ class ImposterServer:
     return self.kXR_ok(streamid, status, dlen, data)
 
   def kXR_login(self, streamid=None, status=None, dlen=None, sessid=None,
-            sec=None):
+            sec=None, verify_auth=True):
     """Return a packed representation of a kXR_login response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Login')              
     # Check if client needs to authenticate
-    auth = AuthHelper.AuthHelper(self.context) 
-    if not sec:
+    if verify_auth and not sec:
+      auth = AuthHelper.AuthHelper(self.context) 
       sec = auth.getsectoken()
+    else:
+      sec = ''
 
     params = \
     {'streamid': streamid  if streamid else 0,
