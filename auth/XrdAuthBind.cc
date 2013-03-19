@@ -164,14 +164,6 @@ static PyObject* init(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "ss", &config, &pAuthLibName))
         return NULL;
 
-    // Set some environment vars
-    setenv("XRDINSTANCE", "imposter", 1);
-    //setenv("XrdSecDEBUG", "1", 1);
-
-    // Prepare some variables
-    pAuthEnv = new XrdOucEnv();
-    pAuthEnv->Put("sockname", "imposter");
-
     // Write the temporary config file
     pTempConfigFile = writeTempFile(config);
 
@@ -227,7 +219,6 @@ static PyObject* get_credentials(PyObject *self, PyObject *args)
     int authTokenLen;
     const char *contCred;
     int contCredLen;
-
     int sock;
     struct sockaddr_in *sockAdd;
 
@@ -441,7 +432,10 @@ static PyObject* authenticate(PyObject *self, PyObject *args)
 }
 }
 
-
+/**
+ * Python method table. Lists methods which will be available to the module
+ * inside Python.
+ */
 static PyMethodDef AuthBindMethods[] =
 {
     { "init", init, METH_VARARGS, "Initialize authentication bindings"},
@@ -454,13 +448,27 @@ static PyMethodDef AuthBindMethods[] =
     { NULL, NULL, 0, NULL } /* Sentinel */
 };
 
+/**
+ * Python module initialization function (mandatory). Will be called when the
+ * XrdAuthBind method is imported inside Python.
+ */
 PyMODINIT_FUNC initXrdAuthBind(void)
 {
     PyObject* XrdAuthBind = Py_InitModule("XrdAuthBind", AuthBindMethods);
+
     // Create custom exception
     AuthenticationError = PyErr_NewException("XrdAuthBind.AuthenticationError",
             NULL, NULL);
     Py_INCREF(AuthenticationError);
+
     // Add custom exception to module
     PyModule_AddObject(XrdAuthBind, "AuthenticationError", AuthenticationError);
+
+    // Set some environment vars
+    setenv("XRDINSTANCE", "imposter", 1);
+    //setenv("XrdSecDEBUG", "1", 1);
+
+    // Prepare some variables
+    pAuthEnv = new XrdOucEnv();
+    pAuthEnv->Put("sockname", "imposter");
 }

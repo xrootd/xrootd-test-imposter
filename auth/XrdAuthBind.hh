@@ -34,7 +34,6 @@
 #include <XrdSys/XrdSysLogger.hh>
 #include <XrdSys/XrdSysPthread.hh>
 
-// This will become true when init() is called
 bool pInitialized = false;
 
 std::map<int, XrdSecProtocol*> pAuthProtocols;
