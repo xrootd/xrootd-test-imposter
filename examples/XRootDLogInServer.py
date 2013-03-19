@@ -42,9 +42,11 @@ class XRootDLogInServer:
 
       if request.type == 'handshake':
         print request
-        # Send handshake + protocol at the same time
-        server.send(server.handshake() 
-                  + server.kXR_protocol(streamid=request.streamid))
+        server.send(server.handshake())
+        
+      if request.type == 'kXR_protocol':
+        print request
+        server.send(server.kXR_protocol(streamid=request.streamid))
 
       elif request.type == 'kXR_login':
         print request
