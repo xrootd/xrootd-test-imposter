@@ -50,7 +50,7 @@ class XRootDLogInServer:
 
       elif request.type == 'kXR_login':
         print request
-        server.send(server.kXR_login(streamid=request.streamid))
+        server.send(server.kXR_login(streamid=request.streamid, verify_auth=True))
 
       elif request.type == 'kXR_auth':
         # Authenticate this request's credentials and potentially get
