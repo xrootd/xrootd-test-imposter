@@ -2,7 +2,7 @@ from XrdImposter.ImposterClient import ImposterClient
 from XrdImposter.XProtocol import XOpenRequestOption, XResponseType
 
 
-class AndyTest:
+class EOSWriteClient:
   @classmethod
   def getDescription(cls):
     config = """
