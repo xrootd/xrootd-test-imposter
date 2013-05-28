@@ -260,7 +260,7 @@ XErrorCode = enum(
 #-------------------------------------------------------------------------------
 # PROTOCOL DEFINITION: CLIENT'S REQUESTS STRUCTS
 #-------------------------------------------------------------------------------
-# 
+#
 # Note that the protocol specifies these values to be in network
 # byte order when sent
 
@@ -575,7 +575,7 @@ ServerResponseBody_Login = [
 
 ServerResponseBody_Redirect = [
   {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 's', 'size': 'dlen'}
+  {'name': 'host', 'type': 's', 'size': 'dlen', 'offset': 4}
 ]
 
 ServerResponseBody_Error = [
@@ -681,7 +681,7 @@ ServerInitHandShake = [
   {'name': 'protover', 'type': 'l'},
   {'name': 'msgval', 'type': 'l'},
 ]
-          
+
 XActionCode = enum(
    kXR_asyncab  = 5000,
    kXR_asyncdi  = 5001,
