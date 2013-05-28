@@ -33,7 +33,7 @@ class MessageHelper:
 
   def build_message(self, message_struct, params):
     """Return a packed representation of the given params mapped onto
-    the given message struct."""    
+    the given message struct."""
     if not len(params) == len(message_struct):
       print "[!] Error building message: wrong number of parameters"
       sys.exit(1)
@@ -52,7 +52,7 @@ class MessageHelper:
             format += str(params[member['size']]) + member['type']
         else:
           format += str(member['size']) + member['type']
-      else: 
+      else:
         format += member['type']
 
     message = tuple(flatten(message))
@@ -68,25 +68,25 @@ class MessageHelper:
 
   def receive_message(self):
     """"""
-    try:  
+    try:
       message = self.sock.recv(4096)
     except socket.error, e:
       print 'Error receiving message: %s' % e
       sys.exit(1)
-    return message   
+    return message
 
   def unpack_response(self, response_raw, request_raw):
-    """Return an unpacked named tuple representation of a server response."""    
+    """Return an unpacked named tuple representation of a server response."""
     # Unpack the request that generated this response for reference
-    request = self.unpack_request(request_raw)
+    request = self.unpack_request(request_raw)[0]
     requestid = get_requestid(request.type)
 
     # Unpack the response header to find the status and data length
     header_struct = get_struct('ServerResponseHeader')
-    format = '>' 
+    format = '>'
     for member in header_struct:
       format += member['type']
-    header = struct.unpack(format + (str(len(response_raw) - 8) + 's'), 
+    header = struct.unpack(format + (str(len(response_raw) - 8) + 's'),
                            response_raw)
     streamid = header[0]
     status = header[1]
@@ -102,7 +102,7 @@ class MessageHelper:
       attncode = struct.unpack('>H', body[:2])[0]
       body_struct = get_struct('ServerResponseBody_Attn_' \
                                + get_attncode(attncode)[4:])
-      if not body_struct: 
+      if not body_struct:
         body_struct = body_struct = get_struct('ServerResponseBody_Attn')
     # Check if this is more than a simple kXR_ok response
     elif status != XProtocol.XResponseType.kXR_ok:
@@ -120,7 +120,7 @@ class MessageHelper:
     if requestid == XProtocol.XRequestTypes.kXR_open:
       # Remove members from the response struct if the option was not given in
       # the request.
-      response_struct[:] = [m for m in response_struct 
+      response_struct[:] = [m for m in response_struct
                             if self.option_included(m, request, response_raw)]
 
     # Build complete format string
@@ -130,22 +130,22 @@ class MessageHelper:
         if member['size'] == 'dlen':
           if member.has_key('offset'):
             format += str(dlen - member['offset']) + member['type']
-          else:       
+          else:
             format += str(dlen) + member['type']
         else:
           format += str(member['size']) + member['type']
-      else: 
+      else:
         format += member['type']
 
     if len(body_struct) == 0 and dlen > 0:
       format += (str(dlen) + 's')
 
     # Unpack to regular tuple
-    response_tuple = struct.unpack(format, response_raw)  
+    response_tuple = struct.unpack(format, response_raw)
     # Convert to named tuple
     response_struct.insert(0, {'name': 'type'})
     type = get_responseid(status)
-    response = namedtuple('response', 
+    response = namedtuple('response',
                           ' '.join([m['name'] for m in response_struct]))
     return response(type, *response_tuple)
 
@@ -154,7 +154,7 @@ class MessageHelper:
     if not len(request_raw): return
 
     # Unpack the header to find the request ID
-    requestid = struct.unpack('>HH' + (str(len(request_raw) - 4) + 's'), 
+    requestid = struct.unpack('>HH' + (str(len(request_raw) - 4) + 's'),
                            request_raw)[1]
 
     # Check if this is a handshake request
@@ -162,7 +162,7 @@ class MessageHelper:
       request_struct = get_struct('ClientInitHandShake')
     else:
       request_type = XProtocol.XRequestTypes.reverse_mapping[requestid]
-      request_struct = get_struct('Client' + request_type[4:].title() 
+      request_struct = get_struct('Client' + request_type[4:].title()
                                      + 'Request')
 
     # Check if another request is being piggybacked.
@@ -180,7 +180,7 @@ class MessageHelper:
                     + member['type']
         else:
           format += str(member['size']) + member['type']
-      else: 
+      else:
         format += member['type']
 
     # Unpack to a regular tuple
@@ -193,7 +193,7 @@ class MessageHelper:
     else:
       type = get_requestid(requestid)
 
-    request = namedtuple('request', 
+    request = namedtuple('request',
                          ' '.join([m['name'] for m in request_struct]))
     return request(type, *request_tuple), pending_req
 
