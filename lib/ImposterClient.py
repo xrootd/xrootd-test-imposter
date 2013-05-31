@@ -95,7 +95,7 @@ class ImposterClient:
   def handshake(self, first=None, second=None, third=None, fourth=None, 
                 fifth=None):
     """Return a packed representation of a client handshake request."""
-    request_struct = get_struct('ClientInitHandShake')    
+    request_struct = get_struct('ClientInitHandShake')
     params = {'first'   : first   if first  else 0,
               'second'  : second  if second else 0, 
               'third'   : third   if third  else 0,
@@ -114,18 +114,18 @@ class ImposterClient:
 
   def kXR_bind(self, streamid=None, requestid=None, sessid=None, dlen=None):
     """Return a packed representation of a kXR_bind request."""
-    request_struct = get_struct('ClientBindRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientBindRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else get_requestid('kXR_bind'),
      'sessid'    : sessid    if sessid     else gen_sessid(),
      'dlen'      : dlen      if dlen       else 0}
-    return self.mh.build_message(request_struct, params)   
+    return self.mh.build_message(request_struct, params)
 
   def kXR_chmod(self, streamid=None, requestid=None, reserved=None, mode=None,
                 dlen=None, path=None):
     """Return a packed representation of a kXR_chmod request."""
-    request_struct = get_struct('ClientChmodRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientChmodRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -134,12 +134,12 @@ class ImposterClient:
      'mode'      : mode      if mode       else 0,
      'dlen'      : dlen      if dlen       else len(path),
      'path'      : path}
-    return self.mh.build_message(request_struct, params) 
+    return self.mh.build_message(request_struct, params)
 
   def kXR_close(self, streamid=None, requestid=None, fhandle=None, fsize=None,
                 reserved=None, dlen=None):
     """Return a packed representation of a kXR_close request."""
-    request_struct = get_struct('ClientCloseRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientCloseRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else get_requestid('kXR_close'),
@@ -149,10 +149,10 @@ class ImposterClient:
      'dlen'      : dlen      if dlen       else 0}
     return self.mh.build_message(request_struct, params)
 
-  def kXR_dirlist(self, streamid=None, requestid=None, reserved=None, 
+  def kXR_dirlist(self, streamid=None, requestid=None, reserved=None,
                   options=None, dlen=None, path=None):
     """Return a packed representation of a kXR_dirlist request."""
-    request_struct = get_struct('ClientDirlistRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientDirlistRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -165,21 +165,21 @@ class ImposterClient:
 
   def kXR_endsess(self, streamid=None, requestid=None, sessid=None, dlen=None):
     """Return a packed representation of a kXR_endsess request."""
-    request_struct = get_struct('ClientEndsessRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientEndsessRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else get_requestid('kXR_endsess'),
      'sessid'    : sessid    if sessid     else (16 * '\0'),
      'dlen'      : dlen      if dlen       else 0}
-    return self.mh.build_message(request_struct, params)  
+    return self.mh.build_message(request_struct, params)
 
   def kXR_getfile(self):
     raise NotImplementedError()
 
-  def kXR_locate(self, streamid=None, requestid=None, options=None, 
+  def kXR_locate(self, streamid=None, requestid=None, options=None,
                  reserved=None, dlen=None, path=None):
     """Return a packed representation of a kXR_locate request."""
-    request_struct = get_struct('ClientLocateRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientLocateRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -191,10 +191,10 @@ class ImposterClient:
     return self.mh.build_message(request_struct, params)
 
   def kXR_login(self, streamid=None, requestid=None, pid=None, username=None,
-                    reserved=None, zone=None, capver=None, role=None, 
+                    reserved=None, zone=None, capver=None, role=None,
                     dlen=None):
     """Return a packed representation of a kXR_login request."""
-    request_struct = get_struct('ClientLoginRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientLoginRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else get_requestid('kXR_login'),
@@ -207,13 +207,13 @@ class ImposterClient:
                                                     | XProtocol.XLoginVersion
                                                     .kXR_ver003),
      'role'      : role      if role       else '0',
-     'dlen'      : dlen      if dlen       else 0}   
+     'dlen'      : dlen      if dlen       else 0}
     return self.mh.build_message(request_struct, params)
 
-  def kXR_mkdir(self, streamid=None, requestid=None, options=None, 
+  def kXR_mkdir(self, streamid=None, requestid=None, options=None,
                 reserved=None, mode=None, dlen=None, path=None):
     """Return a packed representation of a kXR_mkdir request."""
-    request_struct = get_struct('ClientMkdirRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientMkdirRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -225,10 +225,10 @@ class ImposterClient:
      'path'      : path}
     return self.mh.build_message(request_struct, params)
 
-  def kXR_mv(self, streamid=None, requestid=None, reserved=None, dlen=None, 
+  def kXR_mv(self, streamid=None, requestid=None, reserved=None, dlen=None,
              path=None):
     """Return a packed representation of a kXR_mv request."""
-    request_struct = get_struct('ClientMvRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientMvRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -238,10 +238,10 @@ class ImposterClient:
      'path'      : path}
     return self.mh.build_message(request_struct, params)
 
-  def kXR_open(self, streamid=None, requestid=None, mode=None, options=None, 
+  def kXR_open(self, streamid=None, requestid=None, mode=None, options=None,
                 reserved=None, dlen=None, path=None):
     """Return a packed representation of a kXR_open request."""
-    request_struct = get_struct('ClientOpenRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientOpenRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -251,22 +251,22 @@ class ImposterClient:
      'reserved'  : reserved  if reserved   else (12 * '\0'),
      'dlen'      : dlen      if dlen       else len(path),
      'path'      : path}
-    return self.mh.build_message(request_struct, params) 
+    return self.mh.build_message(request_struct, params)
 
   def kXR_ping(self, streamid=None, requestid=None, reserved=None, dlen=None):
     """Return a packed representation of a kXR_ping request."""
-    request_struct = get_struct('ClientPingRequest')    
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientPingRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else get_requestid('kXR_ping'),
      'reserved'  : reserved  if reserved   else (16 * "\0"),
-     'dlen'      : dlen      if dlen       else 0}   
-    return self.mh.build_message(request_struct, params)   
+     'dlen'      : dlen      if dlen       else 0}
+    return self.mh.build_message(request_struct, params)
 
   def kXR_prepare(self, streamid=None, requestid=None, options=None, prty=None,
                   port=None, reserved=None, dlen=None, plist=None):
     """Return a packed representation of a kXR_prepare request."""
-    request_struct = get_struct('ClientPrepareRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientPrepareRequest')
     if not plist: plist = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -276,13 +276,13 @@ class ImposterClient:
      'port'      : port      if port       else 0,
      'reserved'  : reserved  if reserved   else (12 * "\0"),
      'dlen'      : dlen      if dlen       else len(plist),
-     'plist'     : plist}   
+     'plist'     : plist}
     return self.mh.build_message(request_struct, params)
 
   def kXR_protocol(self, streamid=None, requestid=None, clientpv=None,
                    reserved=None, dlen=None):
     """Return a packed representation of a kXR_protocol request."""
-    request_struct = get_struct('ClientProtocolRequest') 
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientProtocolRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else get_requestid('kXR_protocol'),
@@ -299,7 +299,7 @@ class ImposterClient:
                 reserved1=None, fhandle=None, reserved2=None, dlen=None,
                 args=None):
     """Return a packed representation of a kXR_query request."""
-    request_struct = get_struct('ClientQueryRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientQueryRequest')
     if not args: args = ''
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
@@ -317,14 +317,14 @@ class ImposterClient:
                readahead=False, fhandle2=None, rlen2=None, roffset2=None):
     """Return a packed representation of a kXR_read request. Pass 
     readahead=True to enable pre-read."""
-    read_args = get_struct('read_args')
+    read_args = get_struct('ClientRequestHdr') + get_struct('read_args')
     params = \
     {'pathid'    : pathid     if pathid     else '',
      'reserved'  : reserved   if reserved   else (7 * '\0')}
     read_args = self.mh.build_message(read_args, params)
 
     if readahead:
-      readahead_list = get_struct('readahead_list')
+      readahead_list = get_struct('ClientRequestHdr') + get_struct('readahead_list')
       params = \
       {'fhandle2': fhandle2   if fhandle2   else (4 * '\0'),
        'rlen2'   : rlen2      if rlen2      else 0,
@@ -332,7 +332,7 @@ class ImposterClient:
       readahead_list = self.mh.build_message(readahead_list, params)
     else: readahead_list = ''
 
-    request_struct = get_struct('ClientReadRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientReadRequest')
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
      'requestid' : requestid  if requestid  else get_requestid('kXR_read'),
@@ -351,14 +351,14 @@ class ImposterClient:
     format (fhandle, rlen, offset)."""
     all_read_lists = ''
     for read_list in read_lists.itervalues():
-      read_struct = get_struct('readahead_list')
+      read_struct = get_struct('ClientRequestHdr') + get_struct('readahead_list')
       params = \
       {'fhandle2': read_list[0] if read_list[0] else (4 * '\0'),
        'rlen2'   : read_list[1] if read_list[1] else 0,
        'roffset2': read_list[2] if read_list[2] else 0}
       all_read_lists += self.mh.build_message(read_struct, params)
 
-    request_struct = get_struct('ClientReadVRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientReadVRequest')
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
      'requestid' : requestid  if requestid  else get_requestid('kXR_readv'),
@@ -370,7 +370,7 @@ class ImposterClient:
   def kXR_rm(self, streamid=None, requestid=None, reserved=None, dlen=None, 
              path=None):
     """Return a packed representation of a kXR_rm request."""
-    request_struct = get_struct('ClientRmRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientRmRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -389,7 +389,7 @@ class ImposterClient:
   def kXR_set(self, streamid=None, requestid=None, reserved=None, dlen=None, 
                data=None):
     """Return a packed representation of a kXR_set request."""
-    request_struct = get_struct('ClientSetRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientSetRequest')
     if not data: data = ''
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
@@ -402,7 +402,7 @@ class ImposterClient:
   def kXR_stat(self, streamid=None, requestid=None, options=None, reserved=None,
                fhandle=None, dlen=None, path=None):
     """Return a packed representation of a kXR_stat request."""
-    request_struct = get_struct('ClientStatRequest')   
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientStatRequest')   
     if not path: path = ''
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
@@ -423,7 +423,7 @@ class ImposterClient:
   def kXR_sync(self, streamid=None, requestid=None, fhandle=None, reserved=None,
                dlen=None, path=None):
     """Return a packed representation of a kXR_sync request."""
-    request_struct = get_struct('ClientSyncRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientSyncRequest')
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
      'requestid' : requestid  if requestid  else get_requestid('kXR_sync'),
@@ -435,7 +435,7 @@ class ImposterClient:
   def kXR_truncate(self, streamid=None, requestid=None, fhandle=None, 
                    size=None, reserved=None, dlen=None, path=None):
     """Return a packed representation of a kXR_truncate request."""
-    request_struct = get_struct('ClientTruncateRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientTruncateRequest')
     if not path: path = ''
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],
@@ -451,7 +451,7 @@ class ImposterClient:
                    offset=None, pathid=None, vertype=None, reserved=None,
                    dlen=None, data=None):
     """Return a packed representation of a kXR_verifyw request."""
-    request_struct = get_struct('ClientVerifywRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientVerifywRequest')
     if not data: data = ''
     params = \
     {'streamid'  : streamid   if streamid   else self.context['streamid'],

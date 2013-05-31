@@ -53,7 +53,7 @@ class AuthHelper:
     credname, credentials, credlen = \
     self.getcredentials(authtoken, contcred, self.context['socket'].fileno())
 
-    request_struct = get_struct('ClientAuthRequest')
+    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientAuthRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else XProtocol.XRequestTypes.kXR_auth,

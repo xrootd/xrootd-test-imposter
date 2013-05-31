@@ -6,7 +6,7 @@ class EOSWriteClient:
   @classmethod
   def getDescription(cls):
     config = """
-    xrootd.seclib /usr/lib64/libXrdSec.dylib
+    xrootd.seclib /usr/lib64/libXrdSec.so
     """
 
     return { 'type': 'Active', 'hostname': 'eosdevsrv1.cern.ch', 'port': 1094,
