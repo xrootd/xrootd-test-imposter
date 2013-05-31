@@ -264,276 +264,217 @@ XErrorCode = enum(
 # Note that the protocol specifies these values to be in network
 # byte order when sent
 
+ClientRequestHdr = [
+  {'name': 'streamid',  'type': 'H', 'fuzzable': True},
+  {'name': 'requestid', 'type': 'H', 'fuzzable': False},
+]
+
 ClientAdminRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'reserved', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientAuthRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'credtype', 'type': 's', 'size': 4},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'cred', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
+  {'name': 'credtype', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
+  {'name': 'cred', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ClientBindRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'sessid', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'sessid', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientChmodRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 14},
-  {'name': 'mode', 'type': 'H'},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 14, 'fuzzable': True},
+  {'name': 'mode', 'type': 'H', 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ClientCloseRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'fsize', 'type': 'q'},
-  {'name': 'reserved', 'type': 's', 'size': 4},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'fsize', 'type': 'q', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientDirlistRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 15},
-  {'name': 'options', 'type': 'c', 'size': 1},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 15, 'fuzzable': True},
+  {'name': 'options', 'type': 'c', 'size': 1, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ClientEndsessRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'sessid', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'sessid', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientGetfileRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'options', 'type': 'l'},
-  {'name': 'reserved', 'type': 's', 'size': 8},
-  {'name': 'buffsz', 'type': 'l'},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'options', 'type': 'l', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 8, 'fuzzable': True},
+  {'name': 'buffsz', 'type': 'l', 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientLocateRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'options', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 14},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'options', 'type': 'H', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 14, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ClientLoginRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'pid', 'type': 'l'},
-  {'name': 'username', 'type': 's', 'size': 8},
-  {'name': 'reserved', 'type': 's', 'size': 1},
-  {'name': 'zone', 'type': 's', 'size': 1},
-  {'name': 'capver', 'type': 'c', 'size': 1},
-  {'name': 'role', 'type': 'c', 'size': 1},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'pid', 'type': 'l', 'fuzzable': True},
+  {'name': 'username', 'type': 's', 'size': 8, 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 1, 'fuzzable': True},
+  {'name': 'zone', 'type': 's', 'size': 1, 'fuzzable': True},
+  {'name': 'capver', 'type': 'c', 'size': 1, 'fuzzable': True},
+  {'name': 'role', 'type': 'c', 'size': 1, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientMkdirRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'options', 'type': 'c', 'size': 1},
-  {'name': 'reserved', 'type': 's', 'size': 13},
-  {'name': 'mode', 'type': 'H'},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'options', 'type': 'c', 'size': 1, 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 13, 'fuzzable': True},
+  {'name': 'mode', 'type': 'H', 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientMvRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientOpenRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'mode', 'type': 'H'},
-  {'name': 'options', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'mode', 'type': 'H', 'fuzzable': True},
+  {'name': 'options', 'type': 'H', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ClientPingRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'reserved', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientProtocolRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
   {'name': 'clientpv', 'type': 'l'}, # 2.9.7 or higher
-  {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientPrepareRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'options', 'type': 'c'},
-  {'name': 'prty', 'type': 'c'},
+  {'name': 'options', 'type': 'c', 'fuzzable': True},
+  {'name': 'prty', 'type': 'c', 'fuzzable': True},
   {'name': 'port', 'type': 'H'}, # 2.9.9 or higher
-  {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'plist', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'plist', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientPutfileRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'options', 'type': 'l'},
-  {'name': 'reserved', 'type': 's', 'size': 8},
-  {'name': 'buffsz', 'type': 'l'},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'options', 'type': 'l', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 8, 'fuzzable': True},
+  {'name': 'buffsz', 'type': 'l', 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientQueryRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reqcode', 'type': 'H'},
-  {'name': 'reserved1', 'type': 's', 'size': 2},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'reserved2', 'type': 's', 'size': 8},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'args', 'type': 's', 'size': 'dlen'}
+  {'name': 'reqcode', 'type': 'H', 'fuzzable': True},
+  {'name': 'reserved1', 'type': 's', 'size': 2, 'fuzzable': True},
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'reserved2', 'type': 's', 'size': 8, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'args', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientReadRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'offset', 'type': 'q'},
-  {'name': 'rlen', 'type': 'l'},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'offset', 'type': 'q', 'fuzzable': True},
+  {'name': 'rlen', 'type': 'l', 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientReadVRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 15},
-  {'name': 'pathid', 'type': 'c'},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'reserved', 'type': 's', 'size': 15, 'fuzzable': True},
+  {'name': 'pathid', 'type': 'c', 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientRmRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientRmdirRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientSetRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'reserved', 'type': 's', 'size': 16},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientStatRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'options', 'type': 'c'},
-  {'name': 'reserved', 'type': 's', 'size': 11},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'options', 'type': 'c', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 11, 'fuzzable': True},
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientSyncRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'reserved', 'type': 's', 'size': 12},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ClientTruncateRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'size', 'type': 'q'},
-  {'name': 'reserved', 'type': 's', 'size': 4},
-  {'name': 'dlen', 'type': 'l'},
-  {'name': 'path', 'type': 's', 'size': 'dlen'}
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'size', 'type': 'q', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientWriteRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'offset', 'type': 'q'},
-  {'name': 'pathid', 'type': 'c'},
-  {'name': 'reserved', 'type': 's', 'size': 3},
-  {'name': 'dlen', 'type': 'l'}, # Includes crc length
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'offset', 'type': 'q', 'fuzzable': True},
+  {'name': 'pathid', 'type': 'c', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 3, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False}, # Includes crc length
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientVerifywRequest = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'fhandle', 'type': 's', 'size': 4},
-  {'name': 'offset', 'type': 'q'},
-  {'name': 'pathid', 'type': 'c'},
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'offset', 'type': 'q', 'fuzzable': True},
+  {'name': 'pathid', 'type': 'c', 'fuzzable': True},
   {'name': 'vertype', 'type': 'c'}, # One of XVerifyType
-  {'name': 'reserved', 'type': 's', 'size': 2},
-  {'name': 'dlen', 'type': 'l'}, # Includes crc length
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'reserved', 'type': 's', 'size': 2, 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False}, # Includes crc length
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
-
-ClientRequestHdr = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'requestid', 'type': 'H'},
-  {'name': 'body', 'type': 's', 'size': 16},
-  {'name': 'streamid', 'type': 'H'},
-]
-
 
 readahead_list = [
-  {'name': 'fhandle2', 'type': 's', 'size': 4},
-  {'name': 'rlen2', 'type': 'l'},
-  {'name': 'roffset2', 'type': 'q'}
+  {'name': 'fhandle2', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'rlen2', 'type': 'l', 'fuzzable': True},
+  {'name': 'roffset2', 'type': 'q', 'fuzzable': False},
 ]
 
 read_args = [
-  {'name': 'pathid', 'type': 's'},
-  {'name': 'reserved', 'type': 's', 'size': 7}
+  {'name': 'pathid', 'type': 's', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 7, 'fuzzable': False},
 ]
 
 #-------------------------------------------------------------------------------
@@ -547,139 +488,139 @@ read_args = [
 #          no need of packing options
 
 ServerResponseHeader = [
-  {'name': 'streamid', 'type': 'H'},
-  {'name': 'status', 'type': 'H'},
-  {'name': 'dlen', 'type': 'l'}
+  {'name': 'streamid', 'type': 'H', 'fuzzable': True},
+  {'name': 'status', 'type': 'H', 'fuzzable': True},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
 ServerResponseBody_Bind = [
-  {'name': 'pathid', 'type': 'c'},
+  {'name': 'pathid', 'type': 'c', 'fuzzable': True},
 ]
 
 ServerResponseBody_Open = [
-  {'name': 'fhandle', 'type': 's', 'size': 4},
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
   {'name': 'cpsize', 'type': 'l'}, # cpsize & cptype returned if kXR_compress *or*
   {'name': 'cptype', 'type': 's', 'size': 4}, # kXR_retstat is specified
-  {'name': 'data', 'type': 's', 'size': 'dlen', 'offset': 12}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'offset': 12, 'fuzzable': False},
 ] # info will follow if kXR_retstat is specified
 
 ServerResponseBody_Protocol = [
-  {'name': 'pval', 'type': 'l'},
-  {'name': 'flags', 'type': 'l'}
+  {'name': 'pval', 'type': 'l', 'fuzzable': True},
+  {'name': 'flags', 'type': 'l', 'fuzzable': False},
 ]
 
 ServerResponseBody_Login = [
-  {'name': 'sessid', 'type': 's', 'size': 16},
-  {'name': 'sec', 'type': 's', 'size': 'dlen', 'offset': 16}
+  {'name': 'sessid', 'type': 's', 'size': 16, 'fuzzable': True},
+  {'name': 'sec', 'type': 's', 'size': 'dlen', 'offset': 16, 'fuzzable': False},
 ]
 
 ServerResponseBody_Redirect = [
-  {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 's', 'size': 'dlen', 'offset': 4}
+  {'name': 'port', 'type': 'l', 'fuzzable': True},
+  {'name': 'host', 'type': 's', 'size': 'dlen', 'offset': 4, 'fuzzable': False},
 ]
 
 ServerResponseBody_Error = [
-  {'name': 'errnum', 'type': 'l'},
-  {'name': 'errmsg', 'type': 's', 'size': 'dlen', 'offset': 4}
+  {'name': 'errnum', 'type': 'l', 'fuzzable': True},
+  {'name': 'errmsg', 'type': 's', 'size': 'dlen', 'offset': 4, 'fuzzable': False},
 ]
 
 ServerResponseBody_Wait = [
-  {'name': 'seconds', 'type': 'l'},
-  {'name': 'infomsg', 'type': 's', 'size': 'dlen'}
+  {'name': 'seconds', 'type': 'l', 'fuzzable': True},
+  {'name': 'infomsg', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Waitresp = [
-  {'name': 'seconds', 'type': 'l'},
+  {'name': 'seconds', 'type': 'l', 'fuzzable': True},
 ]
 
 ServerResponseBody_Attn = [
-  {'name': 'actnum', 'type': 'l'},
-  {'name': 'parms', 'type': 's', 'size': 'dlen', 'offset': 4}
+  {'name': 'actnum', 'type': 'l', 'fuzzable': True},
+  {'name': 'parms', 'type': 's', 'size': 'dlen', 'offset': 4, 'fuzzable': False},
 ]
 
 ServerResponseBody_Attn_asyncrd = [
-  {'name': 'actnum', 'type': 'l'},
-  {'name': 'port', 'type': 'l'},
-  {'name': 'host', 'type': 's', 'size': 'dlen', 'offset': 8}
+  {'name': 'actnum', 'type': 'l', 'fuzzable': True},
+  {'name': 'port', 'type': 'l', 'fuzzable': True},
+  {'name': 'host', 'type': 's', 'size': 'dlen', 'offset': 8, 'fuzzable': False},
 ]
 
 ServerResponseBody_Attn_asynresp = [
-  {'name': 'actnum', 'type': 'l'},
-  {'name': 'reserved', 'type': 's', 'size': 4},
-  {'name': 'rsid', 'type': 'H'},
-  {'name': 'rstatus', 'type': 'H'},
-  {'name': 'rlen', 'type': 'l'},
-  {'name': 'rdata', 'type': 's', 'size': 'dlen', 'offset': 16}
+  {'name': 'actnum', 'type': 'l', 'fuzzable': True},
+  {'name': 'reserved', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'rsid', 'type': 'H', 'fuzzable': True},
+  {'name': 'rstatus', 'type': 'H', 'fuzzable': True},
+  {'name': 'rlen', 'type': 'l', 'fuzzable': True},
+  {'name': 'rdata', 'type': 's', 'size': 'dlen', 'offset': 16, 'fuzzable': False},
 ]
 
 ServerResponseBody_Attn_asyncwt = [
-  {'name': 'actnum', 'type': 'l'},
-  {'name': 'wsec', 'type': 'l'},
+  {'name': 'actnum', 'type': 'l', 'fuzzable': True},
+  {'name': 'wsec', 'type': 'l', 'fuzzable': True},
 ]
 
 ServerResponseBody_Attn_asyncdi = [
-  {'name': 'actnum', 'type': 'l'},
-  {'name': 'wsec', 'type': 'l'},
-  {'name': 'msec', 'type': 'l'},
+  {'name': 'actnum', 'type': 'l', 'fuzzable': True},
+  {'name': 'wsec', 'type': 'l', 'fuzzable': True},
+  {'name': 'msec', 'type': 'l', 'fuzzable': True},
 ]
 
 ServerResponseBody_Authmore = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Buffer = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Dirlist = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Locate = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Prepare = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Query = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Read = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Readv = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Set = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Stat = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ServerResponseBody_Statx = [
-  {'name': 'data', 'type': 's', 'size': 'dlen'}
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 # The fields to be sent as initial handshake
 ClientInitHandShake = [
-  {'name': 'first', 'type': 'l'},
-  {'name': 'second', 'type': 'l'},
-  {'name': 'third', 'type': 'l'},
-  {'name': 'fourth', 'type': 'l'},
-  {'name': 'fifth', 'type': 'l'},
+  {'name': 'first', 'type': 'l', 'fuzzable': True},
+  {'name': 'second', 'type': 'l', 'fuzzable': True},
+  {'name': 'third', 'type': 'l', 'fuzzable': True},
+  {'name': 'fourth', 'type': 'l', 'fuzzable': True},
+  {'name': 'fifth', 'type': 'l', 'fuzzable': True},
 ]
 
 # The body received after the first handshake's header
 ServerInitHandShake = [
-  {'name': 'protover', 'type': 'l'},
-  {'name': 'msgval', 'type': 'l'},
+  {'name': 'protover', 'type': 'l', 'fuzzable': True},
+  {'name': 'msgval', 'type': 'l', 'fuzzable': True},
 ]
 
 XActionCode = enum(
