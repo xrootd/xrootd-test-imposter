@@ -173,6 +173,9 @@ class MessageHelper:
       request_struct += get_struct('Client' + request_type[4:].title()
                                    + 'Request')
 
+    if requestid == XProtocol.XRequestTypes.kXR_read:
+        request_struct += get_struct('read_args')
+
     # Check if another request is being piggybacked.
     pending_req = None
     if len(request_raw) > format_length(struct_format(request_struct)):
@@ -212,8 +215,8 @@ class MessageHelper:
     except (error, TypeError), e:
       print '[!] Error packing:', e
       print '[!] Dumping values'
-      print '[!]     format:', format
-      print '[!]     message:', values
+      print '[!]     format: ', format
+      print '[!]     message: %r' % values
       sys.exit(1)
 
   def unpack(self, format, blob):
@@ -224,8 +227,8 @@ class MessageHelper:
       print '[!] Error unpacking:', e
       print '[!] Dumping values'
       print '[!]     format:', format
-      print '[!]     blob:  ', blob
-      exit(0)
+      print '[!]     blob:   %r' % blob
+      sys.exit(0)
 
   def option_included(self, member, request, response_raw):
     """Return whether or not the given member will be in the given packed

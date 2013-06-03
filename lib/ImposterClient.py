@@ -317,14 +317,14 @@ class ImposterClient:
                readahead=False, fhandle2=None, rlen2=None, roffset2=None):
     """Return a packed representation of a kXR_read request. Pass 
     readahead=True to enable pre-read."""
-    read_args = get_struct('ClientRequestHdr') + get_struct('read_args')
+    read_args = get_struct('read_args')
     params = \
     {'pathid'    : pathid     if pathid     else '',
      'reserved'  : reserved   if reserved   else (7 * '\0')}
     read_args = self.mh.build_message(read_args, params)
 
     if readahead:
-      readahead_list = get_struct('ClientRequestHdr') + get_struct('readahead_list')
+      readahead_list = get_struct('readahead_list')
       params = \
       {'fhandle2': fhandle2   if fhandle2   else (4 * '\0'),
        'rlen2'   : rlen2      if rlen2      else 0,
