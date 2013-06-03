@@ -277,8 +277,8 @@ ClientAdminRequest = [
 ClientAuthRequest = [
   {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
   {'name': 'credtype', 'type': 's', 'size': 4, 'fuzzable': True},
-  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
-  {'name': 'cred', 'type': 's', 'size': 'dlen', 'fuzzable': False},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'cred', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientBindRequest = [
@@ -289,8 +289,8 @@ ClientBindRequest = [
 ClientChmodRequest = [
   {'name': 'reserved', 'type': 's', 'size': 14, 'fuzzable': True},
   {'name': 'mode', 'type': 'H', 'fuzzable': True},
-  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
-  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientCloseRequest = [
@@ -303,8 +303,8 @@ ClientCloseRequest = [
 ClientDirlistRequest = [
   {'name': 'reserved', 'type': 's', 'size': 15, 'fuzzable': True},
   {'name': 'options', 'type': 'c', 'size': 1, 'fuzzable': True},
-  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
-  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientEndsessRequest = [
@@ -322,8 +322,8 @@ ClientGetfileRequest = [
 ClientLocateRequest = [
   {'name': 'options', 'type': 'H', 'fuzzable': True},
   {'name': 'reserved', 'type': 's', 'size': 14, 'fuzzable': True},
-  {'name': 'dlen', 'type': 'l', 'fuzzable': True},
-  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
+  {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientLoginRequest = [
@@ -355,7 +355,7 @@ ClientOpenRequest = [
   {'name': 'options', 'type': 'H', 'fuzzable': True},
   {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
-  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': False},
+  {'name': 'path', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientPingRequest = [
@@ -364,7 +364,7 @@ ClientPingRequest = [
 ]
 
 ClientProtocolRequest = [
-  {'name': 'clientpv', 'type': 'l'}, # 2.9.7 or higher
+  {'name': 'clientpv', 'type': 'l', 'fuzzable': True}, # 2.9.7 or higher
   {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
@@ -372,7 +372,7 @@ ClientProtocolRequest = [
 ClientPrepareRequest = [
   {'name': 'options', 'type': 'c', 'fuzzable': True},
   {'name': 'prty', 'type': 'c', 'fuzzable': True},
-  {'name': 'port', 'type': 'H'}, # 2.9.9 or higher
+  {'name': 'port', 'type': 'H', 'fuzzable': True}, # 2.9.9 or higher
   {'name': 'reserved', 'type': 's', 'size': 12, 'fuzzable': True},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
   {'name': 'plist', 'type': 's', 'size': 'dlen', 'fuzzable': True},
@@ -395,9 +395,9 @@ ClientQueryRequest = [
 ]
 
 ClientReadRequest = [
-  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': False},
   {'name': 'offset', 'type': 'q', 'fuzzable': True},
-  {'name': 'rlen', 'type': 'l', 'fuzzable': True},
+  {'name': 'rlen', 'type': 'l', 'fuzzable': False},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
@@ -460,7 +460,7 @@ ClientVerifywRequest = [
   {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
   {'name': 'offset', 'type': 'q', 'fuzzable': True},
   {'name': 'pathid', 'type': 'c', 'fuzzable': True},
-  {'name': 'vertype', 'type': 'c'}, # One of XVerifyType
+  {'name': 'vertype', 'type': 'c', 'fuzzable': True}, # One of XVerifyType
   {'name': 'reserved', 'type': 's', 'size': 2, 'fuzzable': True},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False}, # Includes crc length
   {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': True},
@@ -469,12 +469,12 @@ ClientVerifywRequest = [
 readahead_list = [
   {'name': 'fhandle2', 'type': 's', 'size': 4, 'fuzzable': True},
   {'name': 'rlen2', 'type': 'l', 'fuzzable': True},
-  {'name': 'roffset2', 'type': 'q', 'fuzzable': False},
+  {'name': 'roffset2', 'type': 'q', 'fuzzable': True},
 ]
 
 read_args = [
-  {'name': 'pathid', 'type': 's', 'fuzzable': True},
-  {'name': 'reserved', 'type': 's', 'size': 7, 'fuzzable': False},
+  {'name': 'pathid', 'type': 's', 'fuzzable': False},
+  {'name': 'reserved', 'type': 's', 'size': 7, 'fuzzable': True},
 ]
 
 #-------------------------------------------------------------------------------
@@ -610,10 +610,10 @@ ServerResponseBody_Statx = [
 
 # The fields to be sent as initial handshake
 ClientInitHandShake = [
-  {'name': 'first', 'type': 'l', 'fuzzable': True},
-  {'name': 'second', 'type': 'l', 'fuzzable': True},
-  {'name': 'third', 'type': 'l', 'fuzzable': True},
-  {'name': 'fourth', 'type': 'l', 'fuzzable': True},
+  {'name': 'first', 'type': 'l', 'fuzzable': False},
+  {'name': 'second', 'type': 'l', 'fuzzable': False},
+  {'name': 'third', 'type': 'l', 'fuzzable': False},
+  {'name': 'fourth', 'type': 'l', 'fuzzable': False},
   {'name': 'fifth', 'type': 'l', 'fuzzable': True},
 ]
 
