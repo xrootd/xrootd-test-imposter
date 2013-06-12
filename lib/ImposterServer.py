@@ -173,8 +173,8 @@ class ImposterServer:
     return self.mh.build_message(response_struct, params)
 
   def kXR_open(self, streamid=None, status=None, dlen=None, fhandle=None,
-               cpsize=None, cptype=None, info=None):
-    """Return a packed representation of a kXR_open response.""" 
+               cpsize=None, cptype=None, data=None):
+    """Return a packed representation of a kXR_open response."""
     response_struct = get_struct('ServerResponseHeader') + \
                       get_struct('ServerResponseBody_Open')
     params = \
@@ -184,14 +184,14 @@ class ImposterServer:
      'fhandle' : fhandle   if fhandle  else (4 * '\0'),
      'cpsize'  : cpsize    if cpsize   else 0,
      'cptype'  : cptype    if cptype   else (4 * '\0'),
-     'info'    : info      if info     else ''}
+     'data'    : data      if data     else ''}
     if not cpsize: del response_struct[4]; del params['cpsize']
     if not cptype: del response_struct[4]; del params['cptype']
-    if not info:   del response_struct[4]; del params['info']
-    if not dlen: 
+    if not data:   del response_struct[4]; del params['data']
+    if not dlen:
       dlen = 4 + (len(cpsize) if cpsize else 0) \
                + (len(cptype) if cptype else 0) \
-               + (len(info)   if info   else 0)
+               + (len(data)   if data   else 0)
     params['dlen'] = dlen
     return self.mh.build_message(response_struct, params)
 
