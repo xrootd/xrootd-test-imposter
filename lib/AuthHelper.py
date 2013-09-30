@@ -27,7 +27,7 @@ import MessageHelper
 
 from XrdAuthBind import init, get_credentials, authenticate, get_parms, \
                         AuthenticationError
-from Utils import get_struct, get_requestid, get_responseid
+from Utils import getMessageStruct, getResponseId
 
 class AuthHelper:
   """Class to aid sending/receiving xrootd authentication requests/responses,
@@ -53,7 +53,7 @@ class AuthHelper:
     credname, credentials, credlen = \
     self.getcredentials(authtoken, contcred, self.context['socket'].fileno())
 
-    request_struct = get_struct('ClientRequestHdr') + get_struct('ClientAuthRequest')
+    request_struct = getMessageStruct('ClientRequestHdr') + getMessageStruct('ClientAuthRequest')
     params = \
     {'streamid'  : streamid  if streamid   else self.context['streamid'],
      'requestid' : requestid if requestid  else XProtocol.XRequestTypes.kXR_auth,
@@ -69,7 +69,7 @@ class AuthHelper:
     if cred:
       self.auth(cred)
 
-    response_struct = get_struct('ServerResponseHeader')
+    response_struct = getMessageStruct('ServerResponseHeader')
     params = \
     {'streamid'  : streamid  if streamid   else 0,
      'status'    : status    if status     else XProtocol.XResponseType.kXR_ok,

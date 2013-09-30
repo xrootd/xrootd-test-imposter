@@ -20,9 +20,49 @@ import sys
 import re
 import random
 import copy
+import logging
 
 import XProtocol
 
+#-------------------------------------------------------------------------------
+class UtilsException( Exception ):
+  def __init__( self, value ):
+    self.value = value
+
+  def __str__( self ):
+    return repr( self.value )
+
+
+#-------------------------------------------------------------------------------
+def setupLogger( name ):
+  """Setup and return a logger"""
+  logger    = logging.getLogger( name )
+
+  if len(logger.handlers):
+    return logger
+
+  ch        = logging.StreamHandler()
+  formatter = logging.Formatter( '[%(asctime)s] [%(levelname)10s] [%(name)s] %(message)s' )
+
+  levelStr = 'WARNING'
+  for opt in sys.argv:
+    if opt.startswith( '--log=' ):
+      levelStr = opt[6:]
+
+  levelDict = {}
+  for level in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+    levelDict[level] = getattr( logging, level )
+
+  if levelDict.has_key( levelStr ):
+    ch.setLevel( levelDict[levelStr] )
+    logger.setLevel( levelDict[levelStr] )
+
+  ch.setFormatter( formatter )
+  logger.addHandler( ch )
+
+  return logger
+
+#-------------------------------------------------------------------------------
 def flatten(*args):
   """Return a flat list or tuple from a nested one."""
   for x in args:
@@ -32,7 +72,7 @@ def flatten(*args):
     else:
       yield x
 
-def format_length(format):
+def formatLength(format):
   """Return the length in bytes of the given struct format string."""
   mapping = {'c': 1, 's': 1, 'B': 1, 'H': 2, 'l': 4, 'q': 8}
   groups = re.findall('\d*[csBHlq]', format)
@@ -60,17 +100,21 @@ def struct_format(struct):
 
   return format
 
-def gen_sessid():
+#-------------------------------------------------------------------------------
+def genSessId():
   """Return a random session ID of length 16"""
   return str(random.randrange(9999999999999999)).zfill(16)
 
-def get_struct(name):
+#-------------------------------------------------------------------------------
+def getMessageStruct( name ):
   """Return a representation of a struct as a list of dicts."""
-  if hasattr(XProtocol, name):
-    struct = getattr(XProtocol, name)
-    return copy.copy(struct)
+  if hasattr( XProtocol, name ):
+    struct = getattr( XProtocol, name )
+    return copy.copy( struct )
+  raise UtilsException( "Struct " + name + " not found" );
 
-def get_requestid(requestid):
+#-------------------------------------------------------------------------------
+def getRequestId( requestid ):
   """Return the integer request ID associated with the given string request ID, 
   or the other way around.""" 
   try:
@@ -79,13 +123,13 @@ def get_requestid(requestid):
   except: pass
 
   try:
-    return XProtocol.XRequestTypes.reverse_mapping[requestid]
+    return XProtocol.XRequestTypes.reverseMapping[requestid]
   except: pass
 
-  print "[!] Unknown request ID:", requestid
-  sys.exit(1)
+  raise UtilsException( "Invalid request id: " + str(requestid) );
 
-def get_responseid(responseid):
+#-------------------------------------------------------------------------------
+def getResponseId( responseid ):
   """Return the string response ID associated with the given integer response 
   ID, or the other way around."""
   try:
@@ -97,8 +141,7 @@ def get_responseid(responseid):
     return XProtocol.XResponseType.reverse_mapping[responseid]
   except: pass
 
-  print "[!] Unknown response ID:", responseid
-  sys.exit(1)
+  raise UtilsException( "Invalid response id: " + str(requestid) );
 
 def get_attncode(attncode):
   """Return the string attn code associated with the given integer attn code, 

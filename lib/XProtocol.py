@@ -26,7 +26,7 @@
 def enum(**enums):
   """Build the equivalent of a C++ enum"""
   reverse = dict((value, key) for key, value in enums.iteritems())
-  enums['reverse_mapping'] = reverse
+  enums['reverseMapping'] = reverse
   return type('Enum', (), enums)
 
 
@@ -401,10 +401,11 @@ ClientReadRequest = [
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
 ]
 
-ClientReadVRequest = [
+ClientReadvRequest = [
   {'name': 'reserved', 'type': 's', 'size': 15, 'fuzzable': True},
   {'name': 'pathid', 'type': 'c', 'fuzzable': True},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'data', 'type': 's', 'size': 'dlen', 'fuzzable': False},
 ]
 
 ClientRmRequest = [
@@ -426,7 +427,7 @@ ClientSetRequest = [
 ]
 
 ClientStatRequest = [
-  {'name': 'options', 'type': 'c', 'fuzzable': True},
+  {'name': 'options', 'type': 'B', 'fuzzable': True},
   {'name': 'reserved', 'type': 's', 'size': 11, 'fuzzable': True},
   {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
@@ -470,6 +471,12 @@ readahead_list = [
   {'name': 'fhandle2', 'type': 's', 'size': 4, 'fuzzable': True},
   {'name': 'rlen2', 'type': 'l', 'fuzzable': True},
   {'name': 'roffset2', 'type': 'q', 'fuzzable': True},
+]
+
+read_list = [
+  {'name': 'fhandle', 'type': 's', 'size': 4, 'fuzzable': True},
+  {'name': 'len', 'type': 'l', 'fuzzable': True},
+  {'name': 'offset', 'type': 'q', 'fuzzable': True},
 ]
 
 read_args = [

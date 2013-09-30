@@ -1,6 +1,7 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2011-2012 by European Organization for Nuclear Research (CERN)
 # Author: Justin Salmon <jsalmon@cern.ch>
+# Refactored by Lukasz Janyst <ljanyst@cern.ch> (30.09.2013)
 #-------------------------------------------------------------------------------
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,66 +20,172 @@
 import sys
 import struct
 import socket
+import logging
 
 from struct import error
 from collections import namedtuple
-from Utils import flatten, struct_format, format_length, get_requestid, \
-                  get_responseid, get_struct, get_attncode
+from Utils import flatten, struct_format, formatLength, getRequestId, \
+                  getResponseId, getMessageStruct, get_attncode
+import Utils
 
 import XProtocol
 
+#-------------------------------------------------------------------------------
+class MessageException( Exception ):
+  def __init__( self, value ):
+    self.value = value
+
+  def __str__( self ):
+    return repr( self.value )
+
+#-------------------------------------------------------------------------------
 class MessageHelper:
 
+  #-----------------------------------------------------------------------------
   def __init__(self, context):
-    self.sock = context['socket']
+    self.sock   = context['socket']
+    self.logger = Utils.setupLogger( __name__ )
 
-  def build_message(self, message_struct, params):
-    """Return a packed representation of the given params mapped onto
-    the given message struct."""
-    if not len(params) == len(message_struct):
-      print "[!] Error building message: wrong number of parameters"
-      print "[!] Dumping values"
-      print "[!]     message_struct (%d): %s" % (len(message_struct), message_struct)
-      print "[!]     params (%d):         %s" % (len(params), params)
-      sys.exit(1)
-
-    message = tuple()
+  #-----------------------------------------------------------------------------
+  def getMessageFormat( self, messageStruct ):
     format = '>'
 
-    for member in message_struct:
-      message += (params[member['name']],)
+    for member in messageStruct:
       if member.has_key('size'):
-        if member['size'] == 'dlen':
-          if member.has_key('offset'):
-            format += str(params[member['size']] - member['offset']) \
-                      + member['type']
-          else:
-            format += str(params[member['size']]) + member['type']
-        else:
-          format += str(member['size']) + member['type']
-      else:
-        format += member['type']
+        format += str( member['size'] )
+      format += member['type']
+    self.logger.debug( 'Pack format is %s' % (format) )
+    return format
 
-    message = tuple(flatten(message))
-    return self.pack(format, message)
+  #-----------------------------------------------------------------------------
+  def buildMessageFormat( self, messageStruct, params ):
+    """
+    Builds message format, calculates the total size of the resulting
+    message and sorts the parameters for packing.
 
-  def send_message(self, message):
+    returns a 3-tuple with message format, parameter tuple, and size of the
+    resulting message
+    """
+
+    if not len(params) == len(messageStruct):
+      self.logger.error( "Build Message: wrong number of parameters" )
+      self.logger.error( "messageStruct (%d): %s" % (len(messageStruct), messageStruct) )
+      self.logger.error( "params (%d):        %s" % (len(params), params) )
+      raise MessageException( "Wrong number of parameters" )
+
+    messageData = []
+    format = '>'
+
+    for member in messageStruct:
+      messageData += (params[member['name']],)
+      if member.has_key('size'):
+        format += str( member['size'] )
+      format += member['type']
+
+    msgSize = struct.calcsize( format )
+    self.logger.debug( 'Pack format is %s, params are: %s, size: %d' %
+                       (format, str(messageData), msgSize) )
+    return (format, messageData, msgSize)
+
+  #-----------------------------------------------------------------------------
+  # to be removed
+  def buildMessage( self, messageStruct, params ):
+    """Return a packed representation of the given params mapped onto
+    the given message struct."""
+
+    #---------------------------------------------------------------------------
+    if not len(params) == len(messageStruct):
+      self.logger.error( "Build Message: wrong number of parameters" )
+      self.logger.error( "messageStruct (%d): %s" % (len(messageStruct), messageStruct) )
+      self.logger.error( "params (%d):        %s" % (len(params), params) )
+      raise MessageException( "Wrong number of parameters" )
+
+    messageData = []
+    format = '>'
+
+    for member in messageStruct:
+      messageData += (params[member['name']],)
+      if member.has_key('size'):
+        format += str( member['size'] )
+      format += member['type']
+
+    messageData = tuple(messageData)
+    self.logger.debug( 'Pack format is %s, params are: %s' % (format, str(messageData)) )
+    return self.pack(format, messageData)
+
+  #-----------------------------------------------------------------------------
+  def setFieldAttribute( self, messageStruct, fieldName, attrName, attrVal ):
+    attrSet = False
+    for f in messageStruct:
+      if f['name'] != fieldName:
+        continue
+      f[attrName] = attrVal
+      attrSet = True
+    if not attrSet:
+      msg = 'Attribute: ' + attrName + ' of field: ' + fieldName + ' not found'
+      raise MessageException( msg )
+
+  #-----------------------------------------------------------------------------
+  def removeFields( self, messageStruct, toBeRemoved ):
+    return [f for f in messageStruct if f['name'] not in toBeRemoved]
+
+  #-----------------------------------------------------------------------------
+  def sendMessage(self, message):
     """Send a packed binary message."""
     try:
+      self.logger.debug( "Message size: %s" % (len(message)) )
       self.sock.send(message)
     except socket.error, e:
-      print '[!] Error sending message: %s' % e
-      sys.exit(1)
+      raise MessageException( str(e) )
 
-  def receive_message(self):
-    """"""
-    try:
-      message = self.sock.recv(4096)
-    except socket.error, e:
-      print '[!] Error receiving message: %s' % e
-      sys.exit(1)
+  #-----------------------------------------------------------------------------
+  def isHandShake( self, message ):
+    """Check if the message is a handshake"""
+    if len( message ) != 20:
+      return false
+    decodedMsg = struct.unpack( ">iiiii", message )
+    return decodedMsg == ( 0, 0, 0, 4, 2012 )
+
+  #-----------------------------------------------------------------------------
+  def readBytes( self, numBytes ):
+    """Get bytes from the socket"""
+    message   = str()
+    bytesLeft = numBytes
+    while bytesLeft:
+      msg       = self.sock.recv( bytesLeft )
+      # python's way of saying a connection is broken
+      if msg == '':
+        raise MessageException( 'Connection closed by peer' )
+      message   += msg
+      bytesLeft -= len( msg )
     return message
 
+  #-----------------------------------------------------------------------------
+  def receiveMessage( self ):
+    """Receive a client message from the connection socket"""
+    try:
+      message = self.readBytes( 20 )
+      if self.isHandShake( message ):
+        self.logger.debug( 'Received XRootD client handshake' )
+        return message
+      payloadLenMsg = self.readBytes( 4 )
+      message += payloadLenMsg
+      payloadLen = struct.unpack( ">i", payloadLenMsg )
+
+      self.logger.debug( 'Received message header, payload size: %d' %
+                         (payloadLen) )
+
+      message += self.readBytes( payloadLen[0] )
+      self.logger.debug( 'Received message message of size: %d' %
+                         (len(message)) )
+
+    except socket.error, e:
+      self.logger.error( 'Error receiving message: %s' % e )
+      raise MessageException( str(e) )
+
+    return message
+
+  #-----------------------------------------------------------------------------
   def unpack_response(self, response_raw, request_raw):
     """Return an unpacked named tuple representation of a server response."""
     if not len(response_raw):
@@ -89,7 +196,7 @@ class MessageHelper:
     requestid = get_requestid(request.type)
 
     # Unpack the response header to find the status and data length
-    header_struct = get_struct('ServerResponseHeader')
+    header_struct = getMessageStruct('ServerResponseHeader')
     format = '>'
     for member in header_struct:
       format += member['type']
@@ -102,21 +209,21 @@ class MessageHelper:
 
     # Check if this is a handshake response
     if requestid == XProtocol.XRequestTypes.handshake:
-      body_struct = get_struct('ServerInitHandShake')
+      body_struct = getMessageStruct('ServerInitHandShake')
     # Check if this is an asynchronous response
     elif status == XProtocol.XResponseType.kXR_attn:
       # Extract the attn code
       attncode = self.unpack('>H', body[:2])[0]
-      body_struct = get_struct('ServerResponseBody_Attn_' \
+      body_struct = getMessageStruct('ServerResponseBody_Attn_' \
                                + get_attncode(attncode)[4:])
       if not body_struct:
-        body_struct = body_struct = get_struct('ServerResponseBody_Attn')
+        body_struct = body_struct = getMessageStruct('ServerResponseBody_Attn')
     # Check if this is more than a simple kXR_ok response
     elif status != XProtocol.XResponseType.kXR_ok:
-      body_struct = get_struct('ServerResponseBody_' \
+      body_struct = getMessageStruct('ServerResponseBody_' \
                                + get_responseid(status)[4:].title())
     else:
-      body_struct = get_struct('ServerResponseBody_' \
+      body_struct = getMessageStruct('ServerResponseBody_' \
                                + request.type[4:].title())
 
     if not body_struct: body_struct = list()
@@ -156,79 +263,112 @@ class MessageHelper:
                           ' '.join([m['name'] for m in response_struct]))
     return response(type, *response_tuple)
 
-  def unpack_request(self, request_raw):
+  #-----------------------------------------------------------------------------
+  def unpackRequest( self, requestRaw ):
     """Return an unpacked named tuple representation of a client request."""
-    if not len(request_raw): return
+    if len( requestRaw ) < 20:
+      return None
 
-    # Unpack the header to find the request ID
-    requestid = self.unpack('>HH' + (str(len(request_raw) - 4) + 's'),
-                            request_raw)[1]
+    #---------------------------------------------------------------------------
+    # Figure out the request type and build the map of fields
+    #---------------------------------------------------------------------------
+    requestId = self.unpack('>H', requestRaw[2:4])[0]
+    self.logger.debug( 'Received request with id %d' % (requestId) )
 
-    # Check if this is a handshake request
-    if requestid == XProtocol.XRequestTypes.handshake:
-      request_struct = get_struct('ClientInitHandShake')
+    if requestId == XProtocol.XRequestTypes.handshake:
+      requestStruct = getMessageStruct('ClientInitHandShake')
+      self.logger.debug( 'Mapped request type: handshake' )
     else:
-      request_type = XProtocol.XRequestTypes.reverse_mapping[requestid]
-      request_struct  = get_struct('ClientRequestHdr')
-      request_struct += get_struct('Client' + request_type[4:].title()
-                                   + 'Request')
+      requestType = XProtocol.XRequestTypes.reverseMapping[requestId]
+      requestTypeName = requestType[4:].title()
+      self.logger.debug( 'Mapped request type: %s %s' % (requestType, requestTypeName) )
+      requestStruct  = getMessageStruct( 'ClientRequestHdr' )
+      requestStruct += getMessageStruct( 'Client' + requestTypeName + 'Request' )
 
-    if requestid == XProtocol.XRequestTypes.kXR_read:
-        request_struct += get_struct('read_args')
+    if requestId == XProtocol.XRequestTypes.kXR_read:
+        requestStruct += getMessageStruct( 'read_args' )
 
-    # Check if another request is being piggybacked.
-    pending_req = None
-    if len(request_raw) > format_length(struct_format(request_struct)):
-        pending_req = request_raw[format_length(struct_format(request_struct)):]
-        request_raw = request_raw[:format_length(struct_format(request_struct))]
-
-    # Build the complete format string
+    #---------------------------------------------------------------------------
+    # Build unpacking format string for this message
+    #---------------------------------------------------------------------------
     format = '>'
-    for member in request_struct:
+    for member in requestStruct:
       if member.has_key('size'):
         if member['size'] == 'dlen':
-          format += str(len(request_raw) - format_length(format)) \
+          format += str(len(requestRaw) - formatLength(format)) \
                     + member['type']
         else:
           format += str(member['size']) + member['type']
       else:
         format += member['type']
+    self.logger.debug( 'Unpack format is: %s' % (format) )
 
-    # Unpack to a regular tuple
-    request_tuple = self.unpack(format, request_raw)
+    #---------------------------------------------------------------------------
+    # Convert the binary message to a named tupple
+    #---------------------------------------------------------------------------
+    requestTuple = self.unpack(format, requestRaw)
 
     # Convert to named tuple
-    request_struct.insert(0, {'name': 'type'})
-    if requestid == XProtocol.XRequestTypes.handshake:
+    requestStruct.insert( 0, {'name': 'type'} )
+    if requestId == XProtocol.XRequestTypes.handshake:
       type = 'handshake'
     else:
-      type = get_requestid(requestid)
+      type = getRequestId( requestId )
+
+    #---------------------------------------------------------------------------
+    extra = []
+    if requestId == XProtocol.XRequestTypes.kXR_readv:
+      extra = self.unpackReadVRequest( requestTuple )
+
+    extraData   = []
+    extraFields = []
+    for e in extra:
+      extraData.append( e[1] )
+      extraFields.append( e[0] )
+    requestTuple += tuple( extraData )
+    extraFields  = ' ' + ' '.join( extraFields )
 
     request = namedtuple('request',
-                         ' '.join([m['name'] for m in request_struct]))
-    return request(type, *request_tuple), pending_req
+                         ' '.join([m['name'] for m in requestStruct]) +
+                         extraFields)
+    return request(type, *requestTuple)
 
+  #-----------------------------------------------------------------------------
   def pack(self, format, values):
     """Try to pack the given values into a binary blob according to the given format string"""
     try:
-      return struct.pack(format, *values)
+      return struct.pack( format, *values )
     except (error, TypeError), e:
-      print '[!] Error packing:', e
-      print '[!] Dumping values'
-      print '[!]     format: ', format
-      print '[!]     message: %r' % values
-      sys.exit(1)
+      raise MessageException( str( e ) );
 
+  #-----------------------------------------------------------------------------
   def unpack(self, format, blob):
     """Try to unpack the given binary blob according to the given format string"""
     try:
       return struct.unpack(format, blob)
     except (error, TypeError), e:
-      print '[!] Error unpacking:', e
-      print '[!] Dumping values'
-      print '[!]     format:', format
-      print '[!]     blob:   %r' % blob
-      sys.exit(0)
+      raise MessageException( str( e ) )
+
+  #-----------------------------------------------------------------------------
+  def unpackReadVRequest( self, request ):
+    """Unpack the chunks received in the readv request"""
+    data = request[-1]
+    self.logger.debug( 'Unpacking %s worth of readv chunks' % (len(data)) )
+    if not len(data):
+      return []
+    readFormat = self.getMessageFormat( getMessageStruct( 'read_list' ) )
+    readLength = struct.calcsize( readFormat )
+    chunksRaw  = [data[x:x+readLength] for x in range(0, len(data), readLength)]
+    chunkType  = namedtuple( 'chunk_request', 'fhandle length offset' )
+    chunks     = []
+
+    for chunk in chunksRaw:
+      c = chunkType( *self.unpack( readFormat, chunk ) )
+      chunks.append( c )
+
+    self.logger.debug( 'Unpacked %d chunks: %s' % (len(chunksRaw), str(chunks)) )
+
+    return [('chunks', chunks)]
 
   def option_included(self, member, request, response_raw):
     """Return whether or not the given member will be in the given packed
