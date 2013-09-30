@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #-------------------------------------------------------------------------------
 # Copyright (c) 2011-2012 by European Organization for Nuclear Research (CERN)
 # Author: Lukasz Janyst <ljanyst@cern.ch>
@@ -28,8 +28,10 @@ def printHelp():
   print "Usage:"
   print "  imposter.py"
   print "    --scenario=ClassName name of the class defining the interaction scenario"
+  print "    --param=param        scenario parameter"
   print "    --libpath=path       path containing the interaction definitions"
   print "    --help               print this help message"
+  print "    --log=LEVEL          logging level DEBUG|INFO|WARNING|ERROR|CRITICAL"
 
 #-------------------------------------------------------------------------------
 class SocketHandler( Thread ):
@@ -44,7 +46,7 @@ class SocketHandler( Thread ):
     self.scenario( self.context )
 
 #-------------------------------------------------------------------------------
-def runPassive( scenario ):
+def runPassive( scenario, param ):
 
   #-----------------------------------------------------------------------------
   # Get the necessary information from the scenario description
@@ -77,7 +79,7 @@ def runPassive( scenario ):
   for i in range( numClients ):
     (clientSocket, address) = serverSocket.accept()
     context = {'socket': clientSocket, 'address': address, 'number': i, 
-               'config': config}
+               'config': config, 'param': param}
 
     scObj = scenario()
     if not callable( scObj ):
@@ -95,7 +97,7 @@ def runPassive( scenario ):
     ct.join()
 
 #-------------------------------------------------------------------------------
-def runActive( scenario ):
+def runActive( scenario, param ):
 
   #-----------------------------------------------------------------------------
   # Get the necessary information from the scenario description
@@ -124,7 +126,8 @@ def runActive( scenario ):
       print "[!] Socket error:", err
       return 11
 
-    context = {'socket': clientSocket, 'streamid': i, 'config': config}
+    context = {'socket': clientSocket, 'streamid': i, 'config': config,
+               'param': param}
 
     scObj = scenario()
     if not callable( scObj ):
@@ -149,7 +152,8 @@ def main():
   #-----------------------------------------------------------------------------
   try:
     opts, args = getopt.getopt( sys.argv[1:], "",
-                                ["help", "scenario=", "libpath="] )
+                                ["help", "scenario=", "libpath=", "log=",
+                                 "param="] )
   except getopt.GetoptError, err:
     print "[!] Unable to parse commandline:", err
     printHelp()
@@ -157,6 +161,7 @@ def main():
 
   libPath   = None
   className = None
+  param     = None
   for o, a in opts:
     if o == "--help":
       printHelp()
@@ -165,6 +170,10 @@ def main():
       libPath = a
     elif o == "--scenario":
       className = a
+    elif o == "--log":
+      pass
+    elif o == "--param":
+      param = a
     else:
       assert False, "unhandled option"
 
@@ -204,9 +213,9 @@ def main():
     return 7
 
   if desc['type'] == 'Active':
-    return runActive( scenario )
+    return runActive( scenario, param )
   elif desc['type'] == 'Passive':
-    return runPassive( scenario )
+    return runPassive( scenario, param )
   else:
     print "[!] Unknown type of scenario:", desc['type']
     return 8
