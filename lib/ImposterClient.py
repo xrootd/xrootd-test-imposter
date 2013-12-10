@@ -23,7 +23,7 @@ import os
 
 import XProtocol
 import MessageHelper
-import AuthHelper
+#import AuthHelper
 
 from Utils import get_struct, get_requestid, gen_sessid
 
@@ -109,8 +109,9 @@ class ImposterClient:
   def kXR_auth(self, **kwargs):
     """Return a packed representation of a kXR_auth request. The default 
     request values can be individually modified by the optional keyword args."""
-    auth = AuthHelper.AuthHelper(self.context)
-    return auth.build_request(**kwargs)
+#    auth = AuthHelper.AuthHelper(self.context)
+#    return auth.build_request(**kwargs)
+    return None
 
   def kXR_bind(self, streamid=None, requestid=None, sessid=None, dlen=None):
     """Return a packed representation of a kXR_bind request."""

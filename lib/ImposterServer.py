@@ -22,7 +22,7 @@ import struct
 
 import XProtocol
 import MessageHelper
-import AuthHelper
+#import AuthHelper
 
 from Utils import getMessageStruct, genSessId, getResponseId, get_attncode
 from Utils import setupLogger
@@ -109,8 +109,9 @@ class ImposterServer:
   #-----------------------------------------------------------------------------
   def authenticate(self, cred):
     """Authenticate the given credentials.""" 
-    authHelper = AuthHelper.AuthHelper( self.context )
-    return authHelper.auth(cred)
+#    authHelper = AuthHelper.AuthHelper( self.context )
+#    return authHelper.auth(cred)
+    return None
 
   #-----------------------------------------------------------------------------
   def handshake( self, streamid=None, status=None, dlen=None, protover=None,

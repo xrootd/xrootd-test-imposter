@@ -21,14 +21,14 @@ setup( name             = 'XrdImposter',
                              'examples/XRootDLogInServer.py'])],
        description      = "Implementation of the XRootD protocol",
        long_description = "Implementation of the XRootD protocol",
-       ext_modules      = [
-           Extension(
-               'XrdImposter.XrdAuthBind',
-               ['auth/XrdAuthBind.cc'],
-               libraries    = ['XrdUtils', 'dl'],
-               extra_compile_args = ['-g'],
-               include_dirs = [xrdincdir],
-               library_dirs = [xrdlibdir]
-               )
-           ]
+#       ext_modules      = [
+#           Extension(
+#               'XrdImposter.XrdAuthBind',
+#               ['auth/XrdAuthBind.cc'],
+#               libraries    = ['XrdUtils', 'dl'],
+#               extra_compile_args = ['-g'],
+#               include_dirs = [xrdincdir],
+#               library_dirs = [xrdlibdir]
+#               )
+#           ]
        )
