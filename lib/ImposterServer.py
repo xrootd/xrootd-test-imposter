@@ -437,6 +437,9 @@ class ImposterServer:
       'dlen'    : dlen      if dlen     else len(infomsg) + 4,
       'seconds' : seconds   if seconds  else 0,
       'infomsg' : infomsg}
+
+    self.mh.setFieldAttribute( responseStruct, 'infomsg', 'size', len( infomsg ) )
+
     return self.mh.buildMessage(responseStruct, params)
 
   def kXR_waitresp(self, streamid=None, status=None, dlen=None, seconds=None):
