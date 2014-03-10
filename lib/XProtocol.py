@@ -334,6 +334,7 @@ ClientLoginRequest = [
   {'name': 'capver', 'type': 'c', 'size': 1, 'fuzzable': True},
   {'name': 'role', 'type': 'c', 'size': 1, 'fuzzable': True},
   {'name': 'dlen', 'type': 'l', 'fuzzable': False},
+  {'name': 'token', 'type': 's', 'size': 'dlen', 'fuzzable': True},
 ]
 
 ClientMkdirRequest = [
