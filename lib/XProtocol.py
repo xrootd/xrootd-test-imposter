@@ -534,7 +534,7 @@ ServerResponseBody_Error = [
 
 ServerResponseBody_Wait = [
   {'name': 'seconds', 'type': 'l', 'fuzzable': True},
-  {'name': 'infomsg', 'type': 's', 'size': 'dlen', 'fuzzable': False},
+  {'name': 'infomsg', 'type': 's', 'size': 'dlen', 'offset': 4, 'fuzzable': False},
 ]
 
 ServerResponseBody_Waitresp = [
