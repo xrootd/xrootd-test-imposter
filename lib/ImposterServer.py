@@ -22,9 +22,9 @@ import struct
 
 import XProtocol
 import MessageHelper
-#import AuthHelper
+import AuthHelper
 
-from Utils import getMessageStruct, genSessId, getResponseId, get_attncode
+from Utils import getMessageStruct, genSessId, getResponseId, getAttnCode
 from Utils import setupLogger
 
 #-------------------------------------------------------------------------------
@@ -60,7 +60,8 @@ class ImposterServer:
     self.context['socket'].close()
 
   #-----------------------------------------------------------------------------
-  def doFullHandshake(self, verifyAuth=False):
+  def doFullHandshake( self, verifyAuth=False, handshakeFlag=None,
+                       protocolFlags=None):
     """Perform handshake/protocol/login/auth/authmore sequence with default 
     values.
 
@@ -72,8 +73,8 @@ class ImposterServer:
       # Send handshake + protocol at the same time
       #-------------------------------------------------------------------------
       if request.type == 'handshake':
-        self.send(self.handshake() 
-                  + self.kXR_protocol())
+        self.send( self.handshake(flag = handshakeFlag) +
+                   self.kXR_protocol(flags = protocolFlags))
 
       #-------------------------------------------------------------------------
       # Handle login - if we don't need to handle authentication - that's it
@@ -109,13 +110,12 @@ class ImposterServer:
   #-----------------------------------------------------------------------------
   def authenticate(self, cred):
     """Authenticate the given credentials.""" 
-#    authHelper = AuthHelper.AuthHelper( self.context )
-#    return authHelper.auth(cred)
-    return None
+    authHelper = AuthHelper.AuthHelper( self.context )
+    return authHelper.auth(cred)
 
   #-----------------------------------------------------------------------------
-  def handshake( self, streamid=None, status=None, dlen=None, protover=None,
-                msgval=None ):
+  def handshake( self, streamid=None, status=None, dlen=None, pval=None,
+                 flag=None ):
     """Return a packed representation of a server handshake response."""
     responseStruct = getMessageStruct('ServerResponseHeader') \
                    + getMessageStruct('ServerInitHandShake')
@@ -123,8 +123,8 @@ class ImposterServer:
       'streamid': streamid  if streamid else 0,
       'status'  : status    if status   else 0,
       'dlen'    : dlen      if dlen     else 8,
-      'protover': protover  if protover else 663,
-      'msgval'  : msgval    if msgval   else 1 }
+      'pval'    : pval      if pval is not None else XProtocol.kXR_PROTOCOLVERSION,
+      'flag'    : flag      if flag is not None else XProtocol.kXR_DataServer }
     return self.mh.buildMessage(responseStruct, params)
 
   #-----------------------------------------------------------------------------
@@ -333,23 +333,19 @@ class ImposterServer:
       'host'    : host}
     return self.mh.buildMessage(responseStruct, params)
 
-  def kXR_attn_asynresp(self, streamid=None, status=None, dlen=None, 
-                        actnum=None, reserved=None, rstreamid=None,
-                        rstatus=None, rlen=None, rdata=None):
+  #-----------------------------------------------------------------------------
+  def kXR_attn_asynresp(self, payloadLength):
     """Return a packed representation of a kXR_attn_asynresp response."""
+
     responseStruct = getMessageStruct('ServerResponseHeader') + \
+                     getMessageStruct('ServerResponseBody_Attn') + \
                      getMessageStruct('ServerResponseBody_Attn_asynresp')
-    if not rdata: rdata = ''
     params = {
-      'streamid': streamid  if streamid  else 0,
-      'status'  : status    if status    else getResponseId('kXR_attn'),
-      'dlen'    : dlen      if dlen      else len(rdata) + 16,
-      'actnum'  : actnum    if actnum    else get_attncode('kXR_asynresp'),
-      'reserved': reserved  if reserved  else (4 * '\0'),
-      'rsid'    : rstreamid if rstreamid else 0,
-      'rstatus' : rstatus   if rstatus   else getResponseId('kXR_ok'),
-      'rlen'    : rlen      if rlen      else len(rdata),
-      'rdata'   : rdata}
+      'streamid': 0,
+      'status'  : getResponseId('kXR_attn'),
+      'dlen'    : payloadLength + 8,
+      'actnum'  : getAttnCode('kXR_asynresp'),
+      'reserved': 4 * '\0' }
     return self.mh.buildMessage(responseStruct, params)
 
   def kXR_attn_asyncwt(self, streamid=None, status=None, dlen=None, actnum=None, 
@@ -383,6 +379,8 @@ class ImposterServer:
       'dlen'    : dlen      if dlen     else len(errmsg + str(errnum)),
       'errnum'  : errnum,
       'errmsg'  : errmsg}
+
+    self.mh.setFieldAttribute( responseStruct, 'errmsg', 'size', len(errmsg) )
     return self.mh.buildMessage(responseStruct, params)
 
   #-----------------------------------------------------------------------------
@@ -423,6 +421,9 @@ class ImposterServer:
       'dlen'    : dlen      if dlen     else len(host) + 4,
       'port'    : port      if port     else 0,
       'host'    : host      if host     else r''}
+
+    self.mh.setFieldAttribute( responseStruct, 'host', 'size', len(host) )
+
     return self.mh.buildMessage(responseStruct, params)
 
   def kXR_wait(self, streamid=None, status=None, dlen=None, seconds=None,

@@ -543,7 +543,6 @@ ServerResponseBody_Waitresp = [
 
 ServerResponseBody_Attn = [
   {'name': 'actnum', 'type': 'l', 'fuzzable': True},
-  {'name': 'parms', 'type': 's', 'size': 'dlen', 'offset': 4, 'fuzzable': False},
 ]
 
 ServerResponseBody_Attn_asyncrd = [
@@ -553,12 +552,7 @@ ServerResponseBody_Attn_asyncrd = [
 ]
 
 ServerResponseBody_Attn_asynresp = [
-  {'name': 'actnum', 'type': 'l', 'fuzzable': True},
   {'name': 'reserved', 'type': 's', 'size': 4, 'fuzzable': True},
-  {'name': 'rsid', 'type': 'H', 'fuzzable': True},
-  {'name': 'rstatus', 'type': 'H', 'fuzzable': True},
-  {'name': 'rlen', 'type': 'l', 'fuzzable': True},
-  {'name': 'rdata', 'type': 's', 'size': 'dlen', 'offset': 16, 'fuzzable': False},
 ]
 
 ServerResponseBody_Attn_asyncwt = [
@@ -627,8 +621,8 @@ ClientInitHandShake = [
 
 # The body received after the first handshake's header
 ServerInitHandShake = [
-  {'name': 'protover', 'type': 'l', 'fuzzable': True},
-  {'name': 'msgval', 'type': 'l', 'fuzzable': True},
+  {'name': 'pval', 'type': 'l', 'fuzzable': True},
+  {'name': 'flag', 'type': 'l', 'fuzzable': True},
 ]
 
 XActionCode = enum(
